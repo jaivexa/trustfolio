@@ -1,15 +1,40 @@
-import NextAuth from "next-auth";
-import { authConfig } from "@/auth.config";
+import { NextResponse, type NextRequest } from "next/server";
+import { isLocale, LOCALE_COOKIE, negotiateLocale } from "@/lib/i18n/config";
+
+const SESSION_COOKIES = ["authjs.session-token", "__Secure-authjs.session-token"];
 
 /**
- * Optimistic gate for /admin: unauthenticated visitors are redirected to the
- * login page before any admin code runs. This is a UX layer only — every admin
- * page and server action re-verifies the session against the database.
+ * 1. Admin: optimistic redirect to the login page when no session cookie is
+ *    present. This is UX only — every admin page, query and action verifies
+ *    the session against the database on the server.
+ * 2. Public: every page lives under /en or /ta. Unprefixed URLs are redirected
+ *    using the saved preference, then Accept-Language, then English.
  */
-const { auth } = NextAuth(authConfig);
+export function proxy(request: NextRequest) {
+  const { pathname, search } = request.nextUrl;
 
-export const proxy = auth;
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    if (pathname === "/admin/login") return NextResponse.next();
+    const hasSession = SESSION_COOKIES.some((name) => request.cookies.has(name));
+    if (!hasSession) {
+      const url = new URL("/admin/login", request.url);
+      url.searchParams.set("callbackUrl", `${pathname}${search}`);
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
+  const first = pathname.split("/")[1];
+  if (isLocale(first)) return NextResponse.next();
+
+  const saved = request.cookies.get(LOCALE_COOKIE)?.value;
+  const locale = isLocale(saved) ? saved : negotiateLocale(request.headers.get("accept-language"));
+  const url = request.nextUrl.clone();
+  url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
+  return NextResponse.redirect(url);
+}
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  // Skip API routes, Next internals, generated metadata files, uploads and any file with an extension.
+  matcher: ["/((?!api|_next|uploads|og|icon|apple-icon|sitemap.xml|robots.txt|.*\\..*).*)"],
 };

@@ -1,84 +1,95 @@
 /**
- * Allow-lists shared by validation, admin forms and rendering.
- * These are configuration, not portfolio content.
+ * Allow-lists and configuration shared by validation, admin forms and rendering.
+ * These are structural settings, not trust content.
  */
+import type { RouteKey } from "@/lib/i18n/paths";
 
-export const SERVICE_ICON_NAMES = [
-  "sparkles",
-  "code",
-  "layout",
-  "server",
-  "database",
-  "cloud",
-  "shield",
-  "gauge",
-  "smartphone",
-  "palette",
-  "workflow",
-  "bot",
-  "rocket",
-  "search",
+/** Icons available for objectives (resolved against an explicit map on render). */
+export const OBJECTIVE_ICON_NAMES = [
+  "heart-handshake",
+  "graduation-cap",
+  "book-open",
   "users",
-  "line-chart",
+  "hand-heart",
+  "stethoscope",
+  "home",
+  "sprout",
+  "droplets",
+  "landmark",
+  "scale",
+  "lightbulb",
+  "baby",
+  "accessibility",
+  "utensils",
+  "tree",
 ] as const;
+export type ObjectiveIconName = (typeof OBJECTIVE_ICON_NAMES)[number];
 
-export type ServiceIconName = (typeof SERVICE_ICON_NAMES)[number];
-
-export const SOCIAL_PLATFORMS = [
-  "github",
-  "linkedin",
-  "x",
-  "youtube",
-  "instagram",
-  "dribbble",
-  "medium",
-  "devto",
-  "website",
-  "email",
-] as const;
-
+export const SOCIAL_PLATFORMS = ["facebook", "instagram", "youtube", "x", "linkedin", "whatsapp", "website", "email"] as const;
 export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number];
 
-export const ACCENT_COLORS = ["indigo", "violet", "emerald", "sky", "amber", "rose"] as const;
-
+export const ACCENT_COLORS = ["teal", "maroon", "indigo", "forest", "ochre"] as const;
 export type AccentColor = (typeof ACCENT_COLORS)[number];
 
-export const SKILL_CATEGORY_LABELS = {
-  FRONTEND: "Frontend",
-  BACKEND: "Backend",
-  DATABASE: "Database",
-  DEVOPS: "DevOps & Cloud",
-  TOOLS: "Tools",
-  OTHER: "Other",
-} as const;
+/** Public navigation items that admins can show, hide and reorder. */
+export const NAV_KEYS = [
+  "home",
+  "about",
+  "activities",
+  "projects",
+  "impact",
+  "trustees",
+  "documents",
+  "gallery",
+  "news",
+  "contact",
+  "verification",
+  "reports",
+  "certificates",
+  "stories",
+] as const satisfies readonly RouteKey[];
+export type NavKey = (typeof NAV_KEYS)[number];
 
-export const EMPLOYMENT_TYPE_LABELS = {
-  FULL_TIME: "Full-time",
-  PART_TIME: "Part-time",
-  CONTRACT: "Contract",
-  FREELANCE: "Freelance",
-  INTERNSHIP: "Internship",
-} as const;
+export const DEFAULT_NAVIGATION: { key: NavKey; visible: boolean }[] = [
+  { key: "home", visible: true },
+  { key: "about", visible: true },
+  { key: "activities", visible: true },
+  { key: "projects", visible: true },
+  { key: "impact", visible: true },
+  { key: "trustees", visible: true },
+  { key: "documents", visible: true },
+  { key: "gallery", visible: true },
+  { key: "news", visible: true },
+  { key: "contact", visible: true },
+  { key: "verification", visible: false },
+  { key: "reports", visible: false },
+  { key: "certificates", visible: false },
+  { key: "stories", visible: false },
+];
 
 /** Cache tags for public data. Admin mutations expire these. */
 export const CACHE_TAGS = {
-  profile: "profile",
+  trust: "trust",
   settings: "settings",
+  trustees: "trustees",
+  objectives: "objectives",
+  history: "history",
+  categories: "categories",
+  activities: "activities",
   projects: "projects",
-  experience: "experience",
-  skills: "skills",
-  services: "services",
+  impact: "impact",
   testimonials: "testimonials",
+  stories: "stories",
+  documents: "documents",
+  reports: "reports",
   certificates: "certificates",
+  verification: "verification",
+  gallery: "gallery",
+  news: "news",
+  faqs: "faqs",
+  media: "media",
 } as const;
-
 export type CacheTag = (typeof CACHE_TAGS)[keyof typeof CACHE_TAGS];
 
-export const PUBLIC_NAV = [
-  { label: "About", href: "/#about" },
-  { label: "Skills", href: "/#skills" },
-  { label: "Projects", href: "/projects" },
-  { label: "Experience", href: "/#experience" },
-  { label: "Services", href: "/#services" },
-  { label: "Contact", href: "/#contact" },
-] as const;
+/** Placeholder written by the seed where official information is missing. */
+export const PENDING_MARKER = "[Content pending official information]";

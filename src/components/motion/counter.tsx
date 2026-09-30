@@ -3,14 +3,24 @@
 import { useEffect, useRef, useState } from "react";
 import { animate, useInView, useReducedMotion } from "motion/react";
 
-const format = new Intl.NumberFormat("en-US");
 
 /**
  * Counts up to `value` when scrolled into view. The final value is rendered on
  * the server (SEO, no-JS) and only reset to 0 if the counter starts off-screen,
  * so there is never a visible flash.
  */
-export function Counter({ value, suffix = "", duration = 1.4 }: { value: number; suffix?: string; duration?: number }) {
+export function Counter({
+  value,
+  suffix = "",
+  duration = 1.4,
+  locale = "en",
+}: {
+  value: number;
+  suffix?: string;
+  duration?: number;
+  locale?: string;
+}) {
+  const format = new Intl.NumberFormat(locale === "ta" ? "ta-IN" : "en-IN", { maximumFractionDigits: 1 });
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.6 });
   const reduceMotion = useReducedMotion();

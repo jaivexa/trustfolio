@@ -72,6 +72,7 @@ export function formatRelative(date: Date | string, now: Date = new Date()): str
 
 export function initials(name: string): string {
   return name
+    .replace(/[^\p{L}\s]/gu, "")
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)

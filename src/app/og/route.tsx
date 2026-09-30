@@ -1,20 +1,22 @@
+import type { NextRequest } from "next/server";
+import { isLocale } from "@/lib/i18n/config";
+import { text } from "@/lib/i18n/localized";
 import { renderOgImage, truncate } from "@/lib/og";
-import { getProfile, getSiteSettings } from "@/server/queries/public";
+import { getSettings, getTrust } from "@/server/queries/public";
 
 /**
- * Default Open Graph card for the site. Used when no custom OG image is set
- * in Admin → Settings → SEO. Statically generated and revalidated with the
- * profile/settings cache tags.
+ * Default Open Graph card, used when no custom share image is set in
+ * Admin → Settings → SEO. Only published trust data is shown.
  */
-export const dynamic = "force-static";
-export const revalidate = 86400;
-
-export async function GET() {
-  const [profile, settings] = await Promise.all([getProfile(), getSiteSettings()]);
+export async function GET(request: NextRequest) {
+  const param = request.nextUrl.searchParams.get("locale");
+  const locale = isLocale(param) ? param : "en";
+  const [trust, settings] = await Promise.all([getTrust(), getSettings()]);
+  const name = trust.namePending ? "Trustfolio" : text(trust.name, locale);
   return renderOgImage({
-    eyebrow: profile?.heroEyebrow ?? settings.siteName,
-    title: truncate(profile?.headline ?? settings.seoTitle, 90),
-    subtitle: truncate(profile?.tagline ?? settings.seoDescription, 150),
-    footer: profile?.fullName ?? settings.siteName,
+    eyebrow: locale === "ta" ? "நம்பிக்கை · வெளிப்படைத்தன்மை · தாக்கம்" : "Trust · Transparency · Impact",
+    title: truncate(name, 90),
+    subtitle: truncate(text(trust.tagline, locale) || text(settings.seoDescription, locale) || "", 150) || undefined,
+    footer: locale === "ta" ? "ஆதாரங்களுடன் கூடிய நம்பிக்கை" : "Trust built on evidence",
   });
 }

@@ -1,5 +1,13 @@
-// Trustfolio database schema.
-// Content is owned by a single site Profile; every public section is data-driven.
+// Trustfolio — evidence-based transparency platform for a registered charitable trust.
+//
+// Conventions
+//  • Bilingual text uses paired columns: `…En` (required where the field is required)
+//    and `…Ta` (nullable). A null Tamil column means "translation missing"; the
+//    public site then falls back to English and marks the fallback with lang="en".
+//  • Public content carries `status` (DRAFT | PUBLISHED | ARCHIVED) and `publishedAt`.
+//    Only PUBLISHED rows are ever read by public queries.
+//  • Nothing in this schema implies verification. Evidence is modelled explicitly
+//    (documents, verification records, sources) so claims can be traced.
 
 generator client {
   provider     = "prisma-client"
@@ -18,21 +26,68 @@ enum Role {
   EDITOR
 }
 
-enum SkillCategory {
-  FRONTEND
-  BACKEND
-  DATABASE
-  DEVOPS
-  TOOLS
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CategoryType {
+  ACTIVITY
+  PROJECT
+  DOCUMENT
+  NEWS
+  GALLERY
+}
+
+enum ProjectPhase {
+  PLANNED
+  ONGOING
+  COMPLETED
+  PAUSED
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum DocumentLanguage {
+  EN
+  TA
+  BILINGUAL
   OTHER
 }
 
-enum EmploymentType {
-  FULL_TIME
-  PART_TIME
-  CONTRACT
-  FREELANCE
-  INTERNSHIP
+enum NewsKind {
+  NEWS
+  EVENT
+}
+
+enum CertificateKind {
+  CERTIFICATE
+  AWARD
+  RECOGNITION
+}
+
+/// Which section of the Evidence Center a verification record belongs to.
+enum EvidenceArea {
+  IDENTITY
+  REGISTRATION
+  LEADERSHIP
+  PROJECTS
+  ACTIVITIES
+  FINANCIAL
+  CERTIFICATES
+  OTHER
+}
+
+/// How a visitor can check a claim. Never implies a third-party endorsement.
+enum VerificationMethod {
+  OFFICIAL_DOCUMENT
+  PUBLIC_REGISTRY
+  ISSUER_WEBSITE
+  OTHER
 }
 
 enum MessageStatus {
@@ -53,289 +108,25 @@ enum ActivityAction {
   DELETE
   PUBLISH
   UNPUBLISH
-  FEATURE
-  UNFEATURE
+  ARCHIVE
   LOGIN
+  UPLOAD
 }
 
-// ─── Auth ───────────────────────────────────────────────────────────────────
+// ─── Auth & operations ─────────────────────────────────────────────────────
 
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
   name         String?
   passwordHash String
-  role         Role      @default(ADMIN)
-  image        String?
+  role         Role      @default(EDITOR)
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
   activities ActivityLog[]
-}
-
-// ─── Identity ───────────────────────────────────────────────────────────────
-
-/// Singleton describing the portfolio owner (id = "default").
-model Profile {
-  id                String   @id @default("default")
-  fullName          String
-  headline          String
-  /// Short credibility statement shown under the hero headline.
-  tagline           String
-  shortBio          String
-  /// Long-form biography (Markdown).
-  bio               String
-  avatarUrl         String?
-  location          String?
-  email             String
-  phone             String?
-  availability      String?
-  isAvailable       Boolean  @default(true)
-  resumeUrl         String?
-  heroEyebrow       String?
-  primaryCtaLabel   String   @default("View my work")
-  primaryCtaHref    String   @default("#projects")
-  secondaryCtaLabel String   @default("Get in touch")
-  secondaryCtaHref  String   @default("#contact")
-  values            String[]
-  highlights        String[]
-  /// Optional overrides for trust metrics. `null` means "derive from data".
-  yearsExperience   Int?
-  projectsCompleted Int?
-  clientsServed     Int?
-  achievementsCount Int?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  socialLinks SocialLink[]
-}
-
-model SocialLink {
-  id        String   @id @default(cuid())
-  profileId String   @default("default")
-  platform  String
-  label     String
-  url       String
-  sortOrder Int      @default(0)
-  isVisible Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-
-  @@unique([profileId, platform])
-  @@index([profileId, sortOrder])
-}
-
-/// Singleton for site-wide configuration (id = "default").
-model SiteSetting {
-  id               String          @id @default("default")
-  siteName         String
-  siteDescription  String
-  seoTitle         String
-  seoDescription   String
-  seoKeywords      String[]
-  ogImageUrl       String?
-  twitterHandle    String?
-  defaultTheme     ThemePreference @default(SYSTEM)
-  accentColor      String          @default("indigo")
-  showServices     Boolean         @default(true)
-  showTestimonials Boolean         @default(true)
-  showCertificates Boolean         @default(true)
-  contactEnabled   Boolean         @default(true)
-  footerNote       String?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-}
-
-// ─── Portfolio content ─────────────────────────────────────────────────────
-
-model Technology {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
-  createdAt DateTime @default(now())
-
-  projects    Project[]
-  experiences Experience[]
-}
-
-model Project {
-  id              String    @id @default(cuid())
-  title           String
-  slug            String    @unique
-  /// Card-length summary.
-  summary         String
-  /// Long description (Markdown).
-  description     String
-  thumbnailUrl    String?
-  category        String
-  githubUrl       String?
-  liveUrl         String?
-  isFeatured      Boolean   @default(false)
-  isPublished     Boolean   @default(false)
-  completedAt     DateTime?
-  clientName      String?
-  clientIndustry  String?
-  clientUrl       String?
-  role            String?
-  duration        String?
-  /// Array of `{ label, value }` validated by `projectMetricsSchema`.
-  metrics         Json      @default("[]")
-  /// Case study sections (Markdown).
-  challenge       String?
-  solution        String?
-  results         String?
-  seoTitle        String?
-  seoDescription  String?
-  sortOrder       Int       @default(0)
-  publishedAt     DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  images       ProjectImage[]
-  technologies Technology[]
-  testimonials Testimonial[]
-
-  @@index([isPublished, isFeatured, sortOrder])
-  @@index([category])
-  @@index([completedAt])
-}
-
-model ProjectImage {
-  id        String   @id @default(cuid())
-  projectId String
-  url       String
-  alt       String
-  caption   String?
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId, sortOrder])
-}
-
-model Experience {
-  id             String         @id @default(cuid())
-  company        String
-  companyUrl     String?
-  logoUrl        String?
-  position       String
-  location       String?
-  employmentType EmploymentType @default(FULL_TIME)
-  startDate      DateTime
-  /// `null` means current role.
-  endDate        DateTime?
-  description    String
-  achievements   String[]
-  isPublished    Boolean        @default(true)
-  sortOrder      Int            @default(0)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-
-  technologies Technology[]
-
-  @@index([isPublished, startDate])
-}
-
-model Skill {
-  id          String        @id @default(cuid())
-  name        String
-  category    SkillCategory
-  /// 0–100.
-  proficiency Int           @default(70)
-  years       Int?
-  isFeatured  Boolean       @default(false)
-  sortOrder   Int           @default(0)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  @@unique([name, category])
-  @@index([category, sortOrder])
-}
-
-model Service {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  description String
-  /// Lucide icon name, resolved against an allow-list on render.
-  icon        String   @default("sparkles")
-  features    String[]
-  pricing     String?
-  ctaLabel    String   @default("Start a project")
-  ctaHref     String   @default("#contact")
-  isFeatured  Boolean  @default(false)
-  isPublished Boolean  @default(true)
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([isPublished, sortOrder])
-}
-
-model Testimonial {
-  id          String   @id @default(cuid())
-  name        String
-  role        String?
-  company     String?
-  avatarUrl   String?
-  content     String
-  /// 1–5.
-  rating      Int      @default(5)
-  date        DateTime @default(now())
-  isPublished Boolean  @default(false)
-  isFeatured  Boolean  @default(false)
-  sortOrder   Int      @default(0)
-  projectId   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-
-  @@index([isPublished, sortOrder])
-  @@index([projectId])
-}
-
-model Certificate {
-  id              String    @id @default(cuid())
-  name            String
-  issuer          String
-  issuedAt        DateTime
-  expiresAt       DateTime?
-  credentialId    String?
-  verificationUrl String?
-  imageUrl        String?
-  fileUrl         String?
-  description     String?
-  isPublished     Boolean   @default(true)
-  sortOrder       Int       @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  @@unique([issuer, credentialId])
-  @@index([isPublished, issuedAt])
-}
-
-// ─── Operations ─────────────────────────────────────────────────────────────
-
-model ContactMessage {
-  id        String        @id @default(cuid())
-  name      String
-  email     String
-  subject   String
-  message   String
-  status    MessageStatus @default(UNREAD)
-  /// SHA-256 of the sender IP + AUTH_SECRET; never the raw IP.
-  ipHash    String?
-  userAgent String?
-  readAt    DateTime?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-
-  @@index([status, createdAt])
+  uploads    Media[]
 }
 
 model ActivityLog {
@@ -360,4 +151,729 @@ model RateLimit {
   expiresAt DateTime
 
   @@index([expiresAt])
+}
+
+model ContactMessage {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  locale    String        @default("en")
+  status    MessageStatus @default(UNREAD)
+  /// Salted SHA-256 of the sender IP; never the raw IP.
+  ipHash    String?
+  userAgent String?
+  readAt    DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status, createdAt])
+}
+
+// ─── Media ──────────────────────────────────────────────────────────────────
+
+/// Every uploaded file. PRIVATE media (e.g. un-redacted originals) is stored
+/// separately and only ever served through an authenticated admin route.
+model Media {
+  id           String     @id @default(cuid())
+  /// Public URL for PUBLIC media; internal storage key for PRIVATE media.
+  url          String
+  storageKey   String     @unique
+  filename     String
+  mimeType     String
+  size         Int
+  width        Int?
+  height       Int?
+  altEn        String?
+  altTa        String?
+  captionEn    String?
+  captionTa    String?
+  visibility   Visibility @default(PUBLIC)
+  uploadedById String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  uploadedBy User? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  trustLogos        TrustProfile[]  @relation("TrustLogo")
+  trustHeroes       TrustProfile[]  @relation("TrustHero")
+  settingsOgImages  SiteSetting[]   @relation("SettingsOgImage")
+  trusteePhotos     Trustee[]       @relation("TrusteePhoto")
+  historyImages     HistoryEvent[]  @relation("HistoryImage")
+  activityCovers    Activity[]      @relation("ActivityCover")
+  projectCovers     Project[]       @relation("ProjectCover")
+  testimonialPhotos Testimonial[]   @relation("TestimonialPhoto")
+  storyCovers       Story[]         @relation("StoryCover")
+  documentFiles     Document[]      @relation("DocumentFile")
+  documentOriginals Document[]      @relation("DocumentOriginal")
+  documentThumbs    Document[]      @relation("DocumentThumbnail")
+  reportCovers      AnnualReport[]  @relation("ReportCover")
+  certificateImages Certificate[]   @relation("CertificateImage")
+  albumCovers       GalleryAlbum[]  @relation("AlbumCover")
+  galleryImages     GalleryImage[]
+  newsCovers        NewsPost[]      @relation("NewsCover")
+
+  @@index([visibility, createdAt])
+  @@index([mimeType])
+}
+
+// ─── Trust identity ─────────────────────────────────────────────────────────
+
+/// Singleton (id = "default"). Every field except the English name is optional:
+/// unknown official facts stay NULL and render as "pending official information".
+model TrustProfile {
+  id                    String    @id @default("default")
+  nameEn                String
+  nameTa                String?
+  shortNameEn           String?
+  shortNameTa           String?
+  /// Hero mission statement.
+  taglineEn             String?
+  taglineTa             String?
+  heroTextEn            String?
+  heroTextTa            String?
+  aboutEn               String?
+  aboutTa               String?
+  historyEn             String?
+  historyTa             String?
+  purposeEn             String?
+  purposeTa             String?
+  geographicFocusEn     String?
+  geographicFocusTa     String?
+  visionEn              String?
+  visionTa              String?
+  missionEn             String?
+  missionTa             String?
+  // Registration & legal (only from official documents)
+  registrationNumber    String?
+  registrationOfficeEn  String?
+  registrationOfficeTa  String?
+  registrationDate      DateTime?
+  legalStatusEn         String?
+  legalStatusTa         String?
+  officialAddressEn     String?
+  officialAddressTa     String?
+  establishedDate       DateTime?
+  registrationDocumentId String?
+  // Public contact
+  publicEmail           String?
+  publicPhone           String?
+  officeHoursEn         String?
+  officeHoursTa         String?
+  mapUrl                String?
+  logoId                String?
+  heroImageId           String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  logo                 Media?    @relation("TrustLogo", fields: [logoId], references: [id], onDelete: SetNull)
+  heroImage            Media?    @relation("TrustHero", fields: [heroImageId], references: [id], onDelete: SetNull)
+  registrationDocument Document? @relation("RegistrationDocument", fields: [registrationDocumentId], references: [id], onDelete: SetNull)
+}
+
+/// Singleton (id = "default") for presentation, SEO and navigation.
+model SiteSetting {
+  id               String          @id @default("default")
+  seoTitleEn       String
+  seoTitleTa       String?
+  seoDescriptionEn String
+  seoDescriptionTa String?
+  seoKeywords      String[]
+  ogImageId        String?
+  twitterHandle    String?
+  defaultTheme     ThemePreference @default(SYSTEM)
+  accentColor      String          @default("teal")
+  /// Ordered list of `{ key, visible }` for the public navigation.
+  navigation       Json            @default("[]")
+  contactEnabled   Boolean         @default(true)
+  footerNoteEn     String?
+  footerNoteTa     String?
+  /// Optional privacy-friendly analytics (Plausible) domain.
+  analyticsDomain  String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  ogImage Media? @relation("SettingsOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+}
+
+model SocialLink {
+  id        String   @id @default(cuid())
+  platform  String   @unique
+  label     String
+  url       String
+  sortOrder Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+// ─── People ─────────────────────────────────────────────────────────────────
+
+/// Founder and trustees. Only information approved for publication is stored
+/// here — never government ID numbers, private phones or private addresses.
+model Trustee {
+  id                 String        @id @default(cuid())
+  slug               String        @unique
+  nameEn             String
+  nameTa             String?
+  positionEn         String
+  positionTa         String?
+  photoId            String?
+  bioEn              String?
+  bioTa              String?
+  joinedAt           DateTime?
+  responsibilitiesEn String[]
+  responsibilitiesTa String[]
+  publicEmail        String?
+  linkedinUrl        String?
+  websiteUrl         String?
+  isFounder          Boolean       @default(false)
+  visionEn           String?
+  visionTa           String?
+  contributionEn     String?
+  contributionTa     String?
+  /// Must be true before the profile can be published.
+  publicationConsent Boolean       @default(false)
+  sortOrder          Int           @default(0)
+  status             ContentStatus @default(DRAFT)
+  publishedAt        DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  photo               Media?               @relation("TrusteePhoto", fields: [photoId], references: [id], onDelete: SetNull)
+  documents           Document[]           @relation("TrusteeDocuments")
+  historyEvents       HistoryEvent[]
+  verificationRecords VerificationRecord[]
+
+  @@index([status, sortOrder])
+}
+
+// ─── Purpose & history ─────────────────────────────────────────────────────
+
+model TrustObjective {
+  id               String        @id @default(cuid())
+  titleEn          String
+  titleTa          String?
+  descriptionEn    String?
+  descriptionTa    String?
+  icon             String        @default("heart-handshake")
+  /// Where this objective is stated, e.g. "Trust deed, clause 3(a)".
+  sourceReference  String?
+  sourceDocumentId String?
+  sortOrder        Int           @default(0)
+  status           ContentStatus @default(DRAFT)
+  publishedAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  sourceDocument Document? @relation("ObjectiveSource", fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([status, sortOrder])
+}
+
+model HistoryEvent {
+  id            String        @id @default(cuid())
+  date          DateTime
+  /// Optional display override, e.g. "Early 2019".
+  dateLabelEn   String?
+  dateLabelTa   String?
+  titleEn       String
+  titleTa       String?
+  descriptionEn String?
+  descriptionTa String?
+  imageId       String?
+  documentId    String?
+  evidenceUrl   String?
+  /// Links the event to a person's timeline (e.g. the founder).
+  trusteeId     String?
+  status        ContentStatus @default(DRAFT)
+  publishedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  image    Media?    @relation("HistoryImage", fields: [imageId], references: [id], onDelete: SetNull)
+  document Document? @relation("HistoryDocument", fields: [documentId], references: [id], onDelete: SetNull)
+  trustee  Trustee?  @relation(fields: [trusteeId], references: [id], onDelete: SetNull)
+
+  @@index([status, date])
+}
+
+// ─── Taxonomy ──────────────────────────────────────────────────────────────
+
+model Category {
+  id        String       @id @default(cuid())
+  type      CategoryType
+  slug      String
+  nameEn    String
+  nameTa    String?
+  sortOrder Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  activities    Activity[]
+  projects      Project[]
+  documents     Document[]
+  news          NewsPost[]
+  albums        GalleryAlbum[]
+  impactMetrics ImpactMetric[]
+
+  @@unique([type, slug])
+  @@index([type, sortOrder])
+}
+
+// ─── Work ──────────────────────────────────────────────────────────────────
+
+model Project {
+  id                 String        @id @default(cuid())
+  slug               String        @unique
+  titleEn            String
+  titleTa            String?
+  summaryEn          String
+  summaryTa          String?
+  contentEn          String?
+  contentTa          String?
+  needEn             String?
+  needTa             String?
+  approachEn         String?
+  approachTa         String?
+  objectivesEn       String?
+  objectivesTa       String?
+  categoryId         String?
+  phase              ProjectPhase  @default(ONGOING)
+  startDate          DateTime?
+  endDate            DateTime?
+  locationEn         String?
+  locationTa         String?
+  coverId            String?
+  isFeatured         Boolean       @default(false)
+  externalUrl        String?
+  externalUrlLabelEn String?
+  externalUrlLabelTa String?
+  seoTitleEn         String?
+  seoTitleTa         String?
+  seoDescriptionEn   String?
+  seoDescriptionTa   String?
+  sortOrder          Int           @default(0)
+  status             ContentStatus @default(DRAFT)
+  publishedAt        DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  category            Category?            @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  cover               Media?               @relation("ProjectCover", fields: [coverId], references: [id], onDelete: SetNull)
+  activities          Activity[]
+  documents           Document[]           @relation("ProjectDocuments")
+  testimonials        Testimonial[]
+  impactMetrics       ImpactMetric[]
+  albums              GalleryAlbum[]
+  stories             Story[]
+  news                NewsPost[]
+  verificationRecords VerificationRecord[]
+
+  @@index([status, isFeatured, sortOrder])
+  @@index([categoryId])
+}
+
+model Activity {
+  id                   String        @id @default(cuid())
+  slug                 String        @unique
+  titleEn              String
+  titleTa              String?
+  summaryEn            String
+  summaryTa            String?
+  descriptionEn        String?
+  descriptionTa        String?
+  date                 DateTime
+  endDate              DateTime?
+  locationEn           String?
+  locationTa           String?
+  categoryId           String?
+  coverId              String?
+  beneficiaries        Int?
+  beneficiariesNoteEn  String?
+  beneficiariesNoteTa  String?
+  impactEn             String?
+  impactTa             String?
+  projectId            String?
+  status               ContentStatus @default(DRAFT)
+  publishedAt          DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  category      Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  cover         Media?         @relation("ActivityCover", fields: [coverId], references: [id], onDelete: SetNull)
+  project       Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  documents     Document[]     @relation("ActivityDocuments")
+  albums        GalleryAlbum[]
+  impactMetrics ImpactMetric[] @relation("MetricActivities")
+  stories       Story[]
+  news          NewsPost[]
+  testimonials  Testimonial[]
+
+  @@index([status, date])
+  @@index([categoryId])
+  @@index([projectId])
+}
+
+// ─── Impact & evidence ─────────────────────────────────────────────────────
+
+/// A published figure. Values must come from records; every metric can cite
+/// its reporting period, methodology, source document and related activities.
+model ImpactMetric {
+  id               String        @id @default(cuid())
+  /// Groups the same measure across periods for year-on-year comparison.
+  metricKey        String
+  labelEn          String
+  labelTa          String?
+  value            Float
+  prefix           String?
+  suffix           String?
+  unitEn           String?
+  unitTa           String?
+  periodStart      DateTime?
+  periodEnd        DateTime?
+  periodLabelEn    String?
+  periodLabelTa    String?
+  methodologyEn    String?
+  methodologyTa    String?
+  categoryId       String?
+  sourceDocumentId String?
+  reportId         String?
+  projectId        String?
+  isHeadline       Boolean       @default(false)
+  sortOrder        Int           @default(0)
+  status           ContentStatus @default(DRAFT)
+  publishedAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  category       Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  sourceDocument Document?     @relation("MetricSource", fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  report         AnnualReport? @relation(fields: [reportId], references: [id], onDelete: SetNull)
+  project        Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  activities     Activity[]    @relation("MetricActivities")
+
+  @@index([status, isHeadline, sortOrder])
+  @@index([metricKey, periodEnd])
+}
+
+model Document {
+  id                   String           @id @default(cuid())
+  slug                 String           @unique
+  titleEn              String
+  titleTa              String?
+  descriptionEn        String?
+  descriptionTa        String?
+  categoryId           String?
+  language             DocumentLanguage @default(EN)
+  year                 Int?
+  documentDate         DateTime?
+  /// Public file. If the original contains personal data this MUST be the redacted copy.
+  fileId               String?
+  /// Original, un-redacted file. PRIVATE media, admin-only.
+  originalFileId       String?
+  thumbnailId          String?
+  sourceEn             String?
+  sourceTa             String?
+  version              String?
+  isRedacted           Boolean          @default(false)
+  containsPersonalData Boolean          @default(false)
+  visibility           Visibility       @default(PUBLIC)
+  sortOrder            Int              @default(0)
+  status               ContentStatus    @default(DRAFT)
+  publishedAt          DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  category     Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  file         Media?    @relation("DocumentFile", fields: [fileId], references: [id], onDelete: SetNull)
+  originalFile Media?    @relation("DocumentOriginal", fields: [originalFileId], references: [id], onDelete: SetNull)
+  thumbnail    Media?    @relation("DocumentThumbnail", fields: [thumbnailId], references: [id], onDelete: SetNull)
+
+  projects            Project[]            @relation("ProjectDocuments")
+  activities          Activity[]           @relation("ActivityDocuments")
+  trustees            Trustee[]            @relation("TrusteeDocuments")
+  objectives          TrustObjective[]     @relation("ObjectiveSource")
+  historyEvents       HistoryEvent[]       @relation("HistoryDocument")
+  metrics             ImpactMetric[]       @relation("MetricSource")
+  reportsEn           AnnualReport[]       @relation("ReportDocumentEn")
+  reportsTa           AnnualReport[]       @relation("ReportDocumentTa")
+  certificates        Certificate[]
+  verificationRecords VerificationRecord[]
+  trustRegistrations  TrustProfile[]       @relation("RegistrationDocument")
+
+  @@index([status, visibility, year])
+  @@index([categoryId])
+}
+
+model AnnualReport {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  /// e.g. "2025–26"
+  periodLabel  String
+  startYear    Int
+  titleEn      String
+  titleTa      String?
+  summaryEn    String?
+  summaryTa    String?
+  highlightsEn String?
+  highlightsTa String?
+  impactEn     String?
+  impactTa     String?
+  financialEn  String?
+  financialTa  String?
+  coverId      String?
+  documentEnId String?
+  documentTaId String?
+  status       ContentStatus @default(DRAFT)
+  publishedAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  cover      Media?         @relation("ReportCover", fields: [coverId], references: [id], onDelete: SetNull)
+  documentEn Document?      @relation("ReportDocumentEn", fields: [documentEnId], references: [id], onDelete: SetNull)
+  documentTa Document?      @relation("ReportDocumentTa", fields: [documentTaId], references: [id], onDelete: SetNull)
+  metrics    ImpactMetric[]
+
+  @@index([status, startYear])
+}
+
+model Certificate {
+  id              String          @id @default(cuid())
+  kind            CertificateKind @default(CERTIFICATE)
+  titleEn         String
+  titleTa         String?
+  issuerEn        String
+  issuerTa        String?
+  issuedAt        DateTime?
+  expiresAt       DateTime?
+  /// Only when the credential ID is intended to be public.
+  credentialId    String?
+  verificationUrl String?
+  descriptionEn   String?
+  descriptionTa   String?
+  imageId         String?
+  documentId      String?
+  sortOrder       Int             @default(0)
+  status          ContentStatus   @default(DRAFT)
+  publishedAt     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  image               Media?               @relation("CertificateImage", fields: [imageId], references: [id], onDelete: SetNull)
+  document            Document?            @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  verificationRecords VerificationRecord[]
+
+  @@index([status, sortOrder])
+}
+
+/// A published, inspectable record of how a claim can be checked
+/// (e.g. registration number + registry lookup URL). It documents a method,
+/// not an endorsement.
+model VerificationRecord {
+  id                 String             @id @default(cuid())
+  area               EvidenceArea
+  method             VerificationMethod @default(OFFICIAL_DOCUMENT)
+  titleEn            String
+  titleTa            String?
+  descriptionEn      String?
+  descriptionTa      String?
+  /// Public reference only (e.g. registration number). Never a personal ID.
+  referenceNumber    String?
+  issuingAuthorityEn String?
+  issuingAuthorityTa String?
+  issuedAt           DateTime?
+  externalUrl        String?
+  /// When the trust last re-checked this record.
+  lastCheckedAt      DateTime?
+  documentId         String?
+  certificateId      String?
+  projectId          String?
+  trusteeId          String?
+  sortOrder          Int                @default(0)
+  status             ContentStatus      @default(DRAFT)
+  publishedAt        DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  document    Document?    @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  certificate Certificate? @relation(fields: [certificateId], references: [id], onDelete: SetNull)
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  trustee     Trustee?     @relation(fields: [trusteeId], references: [id], onDelete: SetNull)
+
+  @@index([status, area, sortOrder])
+}
+
+// ─── Voices ─────────────────────────────────────────────────────────────────
+
+model Testimonial {
+  id                   String        @id @default(cuid())
+  nameEn               String
+  nameTa               String?
+  roleEn               String?
+  roleTa               String?
+  organizationEn       String?
+  organizationTa       String?
+  photoId              String?
+  contentEn            String
+  contentTa            String?
+  date                 DateTime
+  /// e.g. "Parent of a scholarship recipient".
+  relationshipEn       String?
+  relationshipTa       String?
+  /// Only true when the relationship has actually been confirmed by the trust.
+  relationshipVerified Boolean       @default(false)
+  /// Must be true before publishing.
+  consentObtained      Boolean       @default(false)
+  projectId            String?
+  activityId           String?
+  sortOrder            Int           @default(0)
+  status               ContentStatus @default(DRAFT)
+  publishedAt          DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  photo    Media?    @relation("TestimonialPhoto", fields: [photoId], references: [id], onDelete: SetNull)
+  project  Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  activity Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+
+  @@index([status, sortOrder])
+}
+
+model Story {
+  id              String        @id @default(cuid())
+  slug            String        @unique
+  titleEn         String
+  titleTa         String?
+  summaryEn       String
+  summaryTa       String?
+  subjectEn       String?
+  subjectTa       String?
+  challengeEn     String?
+  challengeTa     String?
+  supportEn       String?
+  supportTa       String?
+  journeyEn       String?
+  journeyTa       String?
+  outcomeEn       String?
+  outcomeTa       String?
+  coverId         String?
+  albumId         String?
+  activityId      String?
+  projectId       String?
+  /// Must be true before publishing. Stories never publish without consent.
+  consentObtained Boolean       @default(false)
+  /// Names and identifying details have been changed or removed.
+  anonymized      Boolean       @default(false)
+  status          ContentStatus @default(DRAFT)
+  publishedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  cover    Media?        @relation("StoryCover", fields: [coverId], references: [id], onDelete: SetNull)
+  album    GalleryAlbum? @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  activity Activity?     @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  project  Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([status, publishedAt])
+}
+
+// ─── Gallery ───────────────────────────────────────────────────────────────
+
+model GalleryAlbum {
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  titleEn       String
+  titleTa       String?
+  descriptionEn String?
+  descriptionTa String?
+  categoryId    String?
+  date          DateTime?
+  locationEn    String?
+  locationTa    String?
+  coverId       String?
+  activityId    String?
+  projectId     String?
+  sortOrder     Int           @default(0)
+  status        ContentStatus @default(DRAFT)
+  publishedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  category Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  cover    Media?         @relation("AlbumCover", fields: [coverId], references: [id], onDelete: SetNull)
+  activity Activity?      @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  project  Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  images   GalleryImage[]
+  stories  Story[]
+
+  @@index([status, date])
+}
+
+model GalleryImage {
+  id        String @id @default(cuid())
+  albumId   String
+  mediaId   String
+  sortOrder Int    @default(0)
+
+  album GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  media Media        @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@unique([albumId, mediaId])
+  @@index([albumId, sortOrder])
+}
+
+// ─── News, events & FAQ ─────────────────────────────────────────────────────
+
+model NewsPost {
+  id               String        @id @default(cuid())
+  slug             String        @unique
+  kind             NewsKind      @default(NEWS)
+  titleEn          String
+  titleTa          String?
+  excerptEn        String
+  excerptTa        String?
+  contentEn        String
+  contentTa        String?
+  date             DateTime
+  eventStart       DateTime?
+  eventEnd         DateTime?
+  eventLocationEn  String?
+  eventLocationTa  String?
+  authorName       String?
+  categoryId       String?
+  coverId          String?
+  activityId       String?
+  projectId        String?
+  status           ContentStatus @default(DRAFT)
+  publishedAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  cover    Media?    @relation("NewsCover", fields: [coverId], references: [id], onDelete: SetNull)
+  activity Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  project  Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([status, date])
+  @@index([kind, eventStart])
+}
+
+model Faq {
+  id          String        @id @default(cuid())
+  questionEn  String
+  questionTa  String?
+  answerEn    String
+  answerTa    String?
+  sortOrder   Int           @default(0)
+  status      ContentStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status, sortOrder])
 }
