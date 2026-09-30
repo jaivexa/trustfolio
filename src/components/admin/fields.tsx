@@ -1,13 +1,13 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormField } from "@/components/shared/form-field";
 import { useFieldDefault, useFieldError } from "@/components/admin/entity-form";
-import { cn } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 
 type BaseFieldProps = {
   name: string;
@@ -159,4 +159,93 @@ export function SwitchField({
 
 export function FieldGrid({ children, cols = 2 }: { children: React.ReactNode; cols?: 2 | 3 }) {
   return <div className={cn("grid gap-5", cols === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3")}>{children}</div>;
+}
+
+const STATUS_OPTIONS = [
+  { value: "DRAFT", label: "Draft — not visible to the public" },
+  { value: "PUBLISHED", label: "Published — visible on the website" },
+  { value: "ARCHIVED", label: "Archived — hidden, kept for records" },
+] as const;
+
+export function StatusField({ defaultValue, description }: { defaultValue?: string | null; description?: React.ReactNode }) {
+  return <SelectField name="status" label="Status" options={STATUS_OPTIONS} defaultValue={defaultValue ?? "DRAFT"} description={description} />;
+}
+
+/** Single optional relation (category, project, document…). Submits "none" for no selection. */
+export function RelationSelect({
+  options,
+  defaultValue,
+  noneLabel = "— None —",
+  ...props
+}: BaseFieldProps & {
+  options: readonly { value: string; label: string; hint?: string }[];
+  defaultValue?: string | null;
+  noneLabel?: string;
+}) {
+  const withNone = [
+    { value: "none", label: noneLabel },
+    ...options.map((o) => ({ value: o.value, label: o.hint ? `${o.label} (${o.hint})` : o.label })),
+  ];
+  return <SelectField {...props} options={withNone} defaultValue={defaultValue ?? "none"} />;
+}
+
+/**
+ * URL slug. For new records it follows the English title (`source` field)
+ * until edited by hand.
+ */
+export function SlugField({
+  defaultValue,
+  source = "titleEn",
+  prefix,
+  label = "URL slug",
+}: {
+  defaultValue?: string | null;
+  source?: string;
+  prefix?: string;
+  label?: string;
+}) {
+  const initial = useFieldDefault("slug", defaultValue);
+  const [value, setValue] = useState(initial);
+  const touched = useRef(Boolean(initial));
+  const ref = useRef<HTMLInputElement>(null);
+  const errors = useFieldError("slug");
+
+  useEffect(() => {
+    const form = ref.current?.form;
+    if (!form) return;
+    const onInput = (event: Event) => {
+      const target = event.target as HTMLInputElement | null;
+      if (target?.name === source && !touched.current) setValue(slugify(target.value).slice(0, 100));
+    };
+    form.addEventListener("input", onInput);
+    return () => form.removeEventListener("input", onInput);
+  }, [source]);
+
+  return (
+    <FormField
+      id="slug"
+      label={label}
+      required
+      errors={errors}
+      description={
+        <>
+          Lowercase letters, numbers and hyphens.{prefix && <> Public address: <code className="text-foreground">/en{prefix}/{value || "…"}</code></>}
+        </>
+      }
+    >
+      {(props) => (
+        <Input
+          {...props}
+          ref={ref}
+          value={value}
+          onChange={(event) => {
+            touched.current = true;
+            setValue(event.target.value.toLowerCase());
+          }}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      )}
+    </FormField>
+  );
 }

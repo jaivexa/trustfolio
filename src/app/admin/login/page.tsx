@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/admin/logi
         className="absolute -top-40 left-1/2 -z-10 h-[30rem] w-[40rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,color-mix(in_oklch,var(--brand)_18%,transparent),transparent)] blur-2xl"
       />
       <div className="w-full max-w-sm">
-        <Link href="/" className="mb-8 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+        <Link prefetch={false} href="/" className="mb-8 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="size-4" aria-hidden="true" /> Back to site
         </Link>
         <div className="rounded-3xl border bg-card p-7 shadow-lift sm:p-8">

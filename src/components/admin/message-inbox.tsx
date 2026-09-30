@@ -15,6 +15,8 @@ type Message = {
   id: string;
   name: string;
   email: string;
+  phone: string | null;
+  locale: string | null;
   subject: string;
   message: string;
   status: "UNREAD" | "READ" | "ARCHIVED";
@@ -103,9 +105,11 @@ export function MessageInbox({
               <DialogTitle className="leading-snug">{open.subject}</DialogTitle>
               <DialogDescription>
                 From <span className="font-medium text-foreground">{open.name}</span> &lt;{open.email}&gt; · {formatDate(open.createdAt)}
+                {open.phone && <> · {open.phone}</>}
+                {open.locale && <> · written in {open.locale === "ta" ? "Tamil" : "English"}</>}
               </DialogDescription>
             </DialogHeader>
-            <div className="max-h-[50dvh] overflow-y-auto rounded-xl border bg-muted/30 p-4 text-sm leading-relaxed whitespace-pre-wrap">
+            <div lang={open.locale ?? undefined} className="max-h-[50dvh] overflow-y-auto rounded-xl border bg-muted/30 p-4 text-sm leading-relaxed whitespace-pre-wrap">
               {open.message}
             </div>
             <DialogFooter className="sm:justify-between">

@@ -2,6 +2,7 @@
 
 import { useOptimistic, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { LoaderCircle, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -61,7 +62,7 @@ export function EditButton({ href, label }: { href: string; label: string }) {
     <Tooltip>
       <TooltipTrigger asChild>
         <Button asChild variant="ghost" size="icon-sm">
-          <Link href={href} aria-label={label}>
+          <Link prefetch={false} href={href} aria-label={label}>
             <Pencil />
           </Link>
         </Button>
@@ -78,14 +79,18 @@ export function DeleteButton({
   description = "This action cannot be undone.",
   variant = "icon",
   onDeleted,
+  redirectTo,
 }: {
   action: () => Promise<ActionState>;
   itemName: string;
   description?: string;
   variant?: "icon" | "button";
   onDeleted?: () => void;
+  /** Navigate here after a successful delete (e.g. back to the list). */
+  redirectTo?: string;
 }) {
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
   return (
     <AlertDialog>
@@ -114,7 +119,10 @@ export function DeleteButton({
               startTransition(async () => {
                 const result = await action();
                 notify(result);
-                if (result.status === "success") onDeleted?.();
+                if (result.status === "success") {
+                  onDeleted?.();
+                  if (redirectTo) router.push(redirectTo);
+                }
               });
             }}
           >

@@ -18,6 +18,7 @@ export function PageHeader({
     <div className="mb-8">
       {backHref && (
         <Link
+          prefetch={false}
           href={backHref}
           className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >

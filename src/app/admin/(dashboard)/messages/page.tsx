@@ -23,10 +23,11 @@ export default async function AdminMessagesPage({ searchParams }: PageProps<"/ad
 
   return (
     <>
-      <PageHeader title="Messages" description="Enquiries submitted through the contact form." />
+      <PageHeader title="Messages" description="Enquiries from the contact form. They contain personal details — keep them within the trust and delete what is no longer needed." />
       <nav aria-label="Message folders" className="mb-5 flex gap-1.5">
         {FILTERS.map((f) => (
           <Link
+            prefetch={false}
             key={f.key}
             href={f.key === "inbox" ? "/admin/messages" : `/admin/messages?filter=${f.key}`}
             aria-current={filter === f.key ? "page" : undefined}

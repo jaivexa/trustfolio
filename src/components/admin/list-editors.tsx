@@ -1,16 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDown, ArrowUp, LoaderCircle, Plus, Trash2, Upload } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFieldDefault, useFieldError } from "@/components/admin/entity-form";
-import { uploadFile } from "@/components/admin/media-field";
-import { SOCIAL_PLATFORMS } from "@/lib/constants";
+import { NAV_KEYS, SOCIAL_PLATFORMS, type NavKey, type SocialPlatform } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 function parseJson<T>(value: string, fallback: T): T {
   try {
@@ -54,143 +53,38 @@ function EditorError({ name }: { name: string }) {
   return error ? <p className="text-xs font-medium text-destructive">{error}</p> : null;
 }
 
-// ─── Project metrics ────────────────────────────────────────────────────────
-
-type Metric = { label: string; value: string };
-
-export function MetricsEditor({ name = "metrics", defaultValue = [] }: { name?: string; defaultValue?: Metric[] }) {
-  const initial = useFieldDefault(name, JSON.stringify(defaultValue));
-  const [rows, setRows] = useState(() => parseJson<Metric[]>(initial, []).map(withKey));
-  const update = (index: number, patch: Partial<Metric>) =>
-    setRows(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
-
-  return (
-    <div className="grid gap-3">
-      {rows.length === 0 && <p className="text-sm text-muted-foreground">No metrics yet. Add results like “Conversion +18%”.</p>}
-      {rows.map((row, index) => (
-        <div key={row._key} className="flex flex-col gap-2 rounded-xl border bg-background/50 p-3 sm:flex-row sm:items-center">
-          <Input aria-label={`Metric ${index + 1} value`} placeholder="Value (e.g. +18%)" value={row.value} onChange={(e) => update(index, { value: e.target.value })} className="sm:w-40" maxLength={40} />
-          <Input aria-label={`Metric ${index + 1} label`} placeholder="Label (e.g. Checkout conversion)" value={row.label} onChange={(e) => update(index, { label: e.target.value })} maxLength={60} />
-          <div className="flex shrink-0 justify-end">
-            <ReorderButtons index={index} count={rows.length} onMove={(to) => setRows(move(rows, index, to))} label={`metric ${index + 1}`} />
-            <Button type="button" variant="ghost" size="icon-sm" onClick={() => setRows(rows.filter((_, i) => i !== index))} aria-label={`Remove metric ${index + 1}`}>
-              <Trash2 />
-            </Button>
-          </div>
-        </div>
-      ))}
-      <div>
-        <Button type="button" variant="outline" size="sm" disabled={rows.length >= 8} onClick={() => setRows([...rows, withKey({ label: "", value: "" })])}>
-          <Plus aria-hidden="true" /> Add metric
-        </Button>
-      </div>
-      <input type="hidden" name={name} value={JSON.stringify(rows.map(withoutKey))} />
-      <EditorError name={name} />
-    </div>
-  );
-}
-
-// ─── Project gallery ────────────────────────────────────────────────────────
-
-type GalleryImage = { url: string; alt: string; caption?: string | null };
-
-export function GalleryEditor({ name = "images", defaultValue = [] }: { name?: string; defaultValue?: GalleryImage[] }) {
-  const initial = useFieldDefault(name, JSON.stringify(defaultValue));
-  const [rows, setRows] = useState(() => parseJson<GalleryImage[]>(initial, []).map(withKey));
-  const [uploading, setUploading] = useState(false);
-  const update = (index: number, patch: Partial<GalleryImage>) =>
-    setRows(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
-
-  const onFiles = async (files: FileList | null) => {
-    if (!files?.length) return;
-    setUploading(true);
-    try {
-      const uploaded: GalleryImage[] = [];
-      for (const file of Array.from(files).slice(0, 20 - rows.length)) {
-        uploaded.push({ url: await uploadFile(file, "projects"), alt: file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "), caption: "" });
-      }
-      setRows((current) => [...current, ...uploaded.map(withKey)]);
-      toast.success(`${uploaded.length} image${uploaded.length === 1 ? "" : "s"} uploaded`);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  return (
-    <div className="grid gap-3">
-      {rows.length === 0 && <p className="text-sm text-muted-foreground">No gallery images yet.</p>}
-      <ul className="grid gap-3">
-        {rows.map((row, index) => (
-          <li key={row._key} className="flex flex-col gap-3 rounded-xl border bg-background/50 p-3 sm:flex-row">
-            <div className="aspect-video w-full shrink-0 overflow-hidden rounded-lg border bg-muted sm:w-40">
-              {row.url && (
-                // eslint-disable-next-line @next/next/no-img-element -- preview of arbitrary admin URL
-                <img src={row.url} alt="" className="size-full object-cover" />
-              )}
-            </div>
-            <div className="grid flex-1 gap-2">
-              <Input aria-label={`Image ${index + 1} URL`} placeholder="Image URL" value={row.url} onChange={(e) => update(index, { url: e.target.value })} />
-              <Input aria-label={`Image ${index + 1} alt text`} placeholder="Alt text (describe the image)" value={row.alt} onChange={(e) => update(index, { alt: e.target.value })} maxLength={200} />
-              <Input aria-label={`Image ${index + 1} caption`} placeholder="Caption (optional)" value={row.caption ?? ""} onChange={(e) => update(index, { caption: e.target.value })} maxLength={300} />
-            </div>
-            <div className="flex shrink-0 justify-end sm:flex-col">
-              <ReorderButtons index={index} count={rows.length} onMove={(to) => setRows(move(rows, index, to))} label={`image ${index + 1}`} />
-              <Button type="button" variant="ghost" size="icon-sm" onClick={() => setRows(rows.filter((_, i) => i !== index))} aria-label={`Remove image ${index + 1}`}>
-                <Trash2 />
-              </Button>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="sm" asChild disabled={uploading}>
-          <label className="cursor-pointer">
-            {uploading ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Upload aria-hidden="true" />}
-            {uploading ? "Uploading…" : "Upload images"}
-            <input type="file" multiple accept="image/png,image/jpeg,image/webp,image/avif,image/gif" className="sr-only" onChange={(e) => onFiles(e.target.files)} disabled={uploading} />
-          </label>
-        </Button>
-        <Button type="button" variant="ghost" size="sm" disabled={rows.length >= 20} onClick={() => setRows([...rows, withKey({ url: "", alt: "", caption: "" })])}>
-          <Plus aria-hidden="true" /> Add by URL
-        </Button>
-      </div>
-      <input type="hidden" name={name} value={JSON.stringify(rows.map(withoutKey))} />
-      <EditorError name={name} />
-    </div>
-  );
-}
-
 // ─── Social links ───────────────────────────────────────────────────────────
 
-type Social = { platform: string; label: string; url: string; isVisible: boolean };
+type Social = { platform: SocialPlatform; label: string; url: string; isVisible: boolean };
 
-const PLATFORM_LABELS: Record<string, string> = {
-  github: "GitHub",
-  linkedin: "LinkedIn",
-  x: "X (Twitter)",
-  youtube: "YouTube",
+const PLATFORM_LABELS: Record<SocialPlatform, string> = {
+  facebook: "Facebook",
   instagram: "Instagram",
-  dribbble: "Dribbble",
-  medium: "Medium",
-  devto: "DEV",
+  youtube: "YouTube",
+  x: "X (Twitter)",
+  linkedin: "LinkedIn",
+  whatsapp: "WhatsApp",
   website: "Website",
   email: "Email",
+};
+
+const PLATFORM_PLACEHOLDER: Partial<Record<SocialPlatform, string>> = {
+  email: "mailto:office@example.org",
+  whatsapp: "https://wa.me/<official number>",
 };
 
 export function SocialLinksEditor({ name = "links", defaultValue = [] }: { name?: string; defaultValue?: Social[] }) {
   const initial = useFieldDefault(name, JSON.stringify(defaultValue));
   const [rows, setRows] = useState(() => parseJson<Social[]>(initial, []).map(withKey));
-  const update = (index: number, patch: Partial<Social>) =>
-    setRows(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+  const update = (index: number, patch: Partial<Social>) => setRows(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
   const unused = SOCIAL_PLATFORMS.filter((p) => !rows.some((r) => r.platform === p));
 
   return (
     <div className="grid gap-3">
+      {rows.length === 0 && <p className="rounded-xl border border-dashed p-5 text-center text-sm text-muted-foreground">No social links yet. Only add official accounts of the trust.</p>}
       {rows.map((row, index) => (
-        <div key={row._key} className="grid gap-2 rounded-xl border bg-background/50 p-3 sm:grid-cols-[10rem_9rem_1fr_auto] sm:items-center">
-          <Select value={row.platform} onValueChange={(platform) => update(index, { platform, label: PLATFORM_LABELS[platform] ?? platform })}>
+        <div key={row._key} className="grid gap-2 rounded-xl border bg-background/50 p-3 lg:grid-cols-[10rem_9rem_1fr_auto] lg:items-center">
+          <Select value={row.platform} onValueChange={(value) => update(index, { platform: value as SocialPlatform, label: PLATFORM_LABELS[value as SocialPlatform] })}>
             <SelectTrigger aria-label={`Link ${index + 1} platform`}>
               <SelectValue />
             </SelectTrigger>
@@ -203,7 +97,12 @@ export function SocialLinksEditor({ name = "links", defaultValue = [] }: { name?
             </SelectContent>
           </Select>
           <Input aria-label={`Link ${index + 1} label`} value={row.label} onChange={(e) => update(index, { label: e.target.value })} maxLength={40} />
-          <Input aria-label={`Link ${index + 1} URL`} value={row.url} onChange={(e) => update(index, { url: e.target.value })} placeholder={row.platform === "email" ? "mailto:you@example.com" : "https://"} />
+          <Input
+            aria-label={`Link ${index + 1} URL`}
+            value={row.url}
+            onChange={(e) => update(index, { url: e.target.value })}
+            placeholder={PLATFORM_PLACEHOLDER[row.platform] ?? "https://"}
+          />
           <div className="flex items-center justify-end gap-1">
             <Label className="mr-1 text-xs font-normal text-muted-foreground">
               <Switch checked={row.isVisible} onCheckedChange={(isVisible) => update(index, { isVisible })} aria-label={`Show link ${index + 1}`} />
@@ -224,13 +123,66 @@ export function SocialLinksEditor({ name = "links", defaultValue = [] }: { name?
           disabled={unused.length === 0}
           onClick={() => {
             const platform = unused[0]!;
-            setRows([...rows, withKey({ platform, label: PLATFORM_LABELS[platform] ?? platform, url: "", isVisible: true })]);
+            setRows([...rows, withKey({ platform, label: PLATFORM_LABELS[platform], url: "", isVisible: true })]);
           }}
         >
           <Plus aria-hidden="true" /> Add link
         </Button>
       </div>
       <input type="hidden" name={name} value={JSON.stringify(rows.map(withoutKey))} />
+      <EditorError name={name} />
+    </div>
+  );
+}
+
+// ─── Public navigation ──────────────────────────────────────────────────────
+
+type NavItem = { key: NavKey; visible: boolean };
+
+/** Show, hide and reorder public menu items. Every page stays reachable by URL and search. */
+export function NavigationEditor({
+  name = "navigation",
+  defaultValue,
+  labels,
+}: {
+  name?: string;
+  defaultValue: NavItem[];
+  labels: Record<NavKey, { en: string; ta: string }>;
+}) {
+  const initial = useFieldDefault(name, JSON.stringify(defaultValue));
+  const [items, setItems] = useState<NavItem[]>(() => {
+    const saved = parseJson<NavItem[]>(initial, []).filter((i) => NAV_KEYS.includes(i.key));
+    // Keys added after the navigation was saved are appended, hidden.
+    const missing = NAV_KEYS.filter((key) => !saved.some((i) => i.key === key)).map((key) => ({ key, visible: false }));
+    return [...saved, ...missing];
+  });
+
+  return (
+    <div className="grid gap-2">
+      <ol className="grid gap-1.5">
+        {items.map((item, index) => (
+          <li
+            key={item.key}
+            className={cn("flex items-center gap-3 rounded-xl border bg-background/50 px-3 py-2", !item.visible && "border-dashed opacity-70")}
+          >
+            <span className="w-5 text-right text-xs text-muted-foreground tabular-nums">{index + 1}</span>
+            <span className="min-w-0 flex-1 text-sm">
+              <span className="font-medium">{labels[item.key].en}</span>
+              <span lang="ta" className="ml-2 text-muted-foreground">
+                {labels[item.key].ta}
+              </span>
+            </span>
+            {item.visible ? <Eye className="size-4 text-success" aria-hidden="true" /> : <EyeOff className="size-4 text-muted-foreground" aria-hidden="true" />}
+            <Switch
+              checked={item.visible}
+              onCheckedChange={(visible) => setItems(items.map((i) => (i.key === item.key ? { ...i, visible } : i)))}
+              aria-label={`Show ${labels[item.key].en} in the menu`}
+            />
+            <ReorderButtons index={index} count={items.length} onMove={(to) => setItems(move(items, index, to))} label={labels[item.key].en} />
+          </li>
+        ))}
+      </ol>
+      <input type="hidden" name={name} value={JSON.stringify(items)} />
       <EditorError name={name} />
     </div>
   );

@@ -45,6 +45,7 @@ export function EntityForm({
   successHref,
   className,
   inline = false,
+  onSuccess,
 }: {
   action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
   children: React.ReactNode;
@@ -55,6 +56,7 @@ export function EntityForm({
   className?: string;
   /** Non-sticky footer, for forms inside dialogs. */
   inline?: boolean;
+  onSuccess?: (state: ActionState) => void;
 }) {
   const [state, formAction, pending] = useActionState(action, idle);
   const router = useRouter();
@@ -63,6 +65,7 @@ export function EntityForm({
   useEffect(() => {
     if (state.status === "success") {
       toast.success(state.message ?? "Saved");
+      onSuccess?.(state);
       if (successHref) router.push(successHref.replace("{id}", state.id ?? ""));
     } else if (state.status === "error") {
       toast.error(state.message ?? "Please fix the highlighted fields.");
@@ -72,7 +75,8 @@ export function EntityForm({
         element?.focus();
       }
     }
-  }, [state, successHref, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per server response
+  }, [state]);
 
   const formErrors = state.fieldErrors?._form;
 
@@ -96,7 +100,7 @@ export function EntityForm({
         >
           {cancelHref && (
             <Button asChild variant="ghost">
-              <Link href={cancelHref}>Cancel</Link>
+              <Link prefetch={false} href={cancelHref}>Cancel</Link>
             </Button>
           )}
           <Button type="submit" disabled={pending}>
@@ -127,7 +131,7 @@ export function FormSection({
         <h2 className="font-semibold">{title}</h2>
         {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
       </header>
-      <div className="grid gap-5">{children}</div>
+      <div className="grid gap-5 [&>*]:min-w-0">{children}</div>
     </section>
   );
 }

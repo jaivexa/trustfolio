@@ -10,8 +10,9 @@ import { buildLocaleMetadata } from "@/lib/seo";
 import { getSettings, getTrust } from "@/server/queries/public";
 import "../globals.css";
 
-export const dynamicParams = false;
-
+// Unknown locales 404 in getPageContext. `dynamicParams` must stay at its
+// default (true): Next applies a `false` here to every child segment, which
+// would 404 all projects, news, documents… published after the build.
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }

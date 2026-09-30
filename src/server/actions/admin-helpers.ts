@@ -89,20 +89,12 @@ export function expire(...tags: CacheTag[]) {
   refresh();
 }
 
-/** Connect-or-create technologies by name (used by projects and experience). */
-export function technologyConnect(names: string[]) {
-  return names.map((name) => ({
-    where: { name },
-    create: {
-      name,
-      slug:
-        name
-          .toLowerCase()
-          .replace(/\+/g, "-plus")
-          .replace(/#/g, "-sharp")
-          .replace(/\./g, "-dot-")
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-+|-+$/g, "") || `tech-${Date.now()}`,
-    },
-  }));
+/** Keeps the first publication date; sets it the first time content is published. */
+export function publishedAtFor(status: string, current: Date | null | undefined): Date | null {
+  if (status === "PUBLISHED") return current ?? new Date();
+  return current ?? null;
 }
+
+/** `{ set: [...] }` / `{ connect: [...] }` for many-to-many relations from an id list. */
+export const relationSet = (ids: string[]) => ({ set: ids.map((id) => ({ id })) });
+export const relationConnect = (ids: string[]) => ({ connect: ids.map((id) => ({ id })) });
