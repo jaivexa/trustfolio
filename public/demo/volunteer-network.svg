@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" role="img" aria-label="Demo illustration">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f5f5a"/><stop offset="1" stop-color="#1f8a7d"/></linearGradient>
+    <pattern id="k" width="60" height="60" patternUnits="userSpaceOnUse">
+    <circle cx="30" cy="30" r="2.5" fill="#fff" opacity=".35"/>
+    <path d="M30 12a18 18 0 0 1 18 18M30 48a18 18 0 0 1-18-18" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2"/>
+  </pattern>
+  </defs>
+  <rect width="1200" height="675" fill="url(#g)"/>
+  <rect width="1200" height="675" fill="url(#k)"/>
+  <circle cx="600" cy="338" r="250" fill="#f3c969" opacity=".16"/>
+  <circle cx="600" cy="338" r="170" fill="#f3c969" opacity=".22"/>
+  <path d="M0 560c200-60 400-60 600 0s400 60 600 0v115H0z" fill="#000" opacity=".12"/>
+  <g transform="translate(480 218)"><circle fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" cx="70" cy="80" r="26"/><circle fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" cx="170" cy="80" r="26"/><path fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" d="M20 200c0-45 30-70 50-70s50 25 50 70M120 200c0-45 30-70 50-70s50 25 50 70"/></g>
+  <g transform="translate(40 40)"><rect width="118" height="34" rx="17" fill="#000" fill-opacity=".28"/><text x="59" y="23" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" letter-spacing="3" fill="#fff">DEMO</text></g>
+</svg>

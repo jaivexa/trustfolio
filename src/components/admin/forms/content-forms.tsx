@@ -19,6 +19,7 @@ export function AlbumForm({ id, record, options }: { id: string | null; record: 
       id={id}
       name={record?.titleEn}
       status={record?.status}
+      isDemo={record?.isDemo}
       publicHref={record ? `/gallery/${record.slug}` : null}
       action={saveAlbum.bind(null, id)}
       aside={
@@ -66,6 +67,7 @@ export function NewsForm({ id, record, options }: { id: string | null; record: L
       id={id}
       name={record?.titleEn}
       status={record?.status}
+      isDemo={record?.isDemo}
       publicHref={record ? `/news/${record.slug}` : null}
       action={saveNews.bind(null, id)}
       aside={

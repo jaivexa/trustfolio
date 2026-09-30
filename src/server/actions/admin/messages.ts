@@ -7,9 +7,9 @@ import type { ActionState } from "@/lib/action-state";
 import { idSchema } from "@/lib/validations/common";
 import { adminMutation, logActivity } from "@/server/actions/admin-helpers";
 
-const statusSchema = z.enum(["UNREAD", "READ", "ARCHIVED"]);
+const statusSchema = z.enum(["UNREAD", "READ", "REPLIED", "ARCHIVED"]);
 
-export async function setMessageStatus(id: string, status: "UNREAD" | "READ" | "ARCHIVED"): Promise<ActionState> {
+export async function setMessageStatus(id: string, status: "UNREAD" | "READ" | "REPLIED" | "ARCHIVED"): Promise<ActionState> {
   return adminMutation(async () => {
     const next = statusSchema.parse(status);
     await db.contactMessage.update({
@@ -17,7 +17,7 @@ export async function setMessageStatus(id: string, status: "UNREAD" | "READ" | "
       data: { status: next, readAt: next === "UNREAD" ? null : new Date() },
     });
     refresh();
-    const labels = { UNREAD: "Marked as unread", READ: "Marked as read", ARCHIVED: "Message archived" } as const;
+    const labels = { UNREAD: "Marked as unread", READ: "Marked as read", REPLIED: "Marked as replied", ARCHIVED: "Message archived" } as const;
     return { status: "success", message: labels[next] };
   });
 }

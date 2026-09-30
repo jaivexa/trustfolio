@@ -93,6 +93,7 @@ enum VerificationMethod {
 enum MessageStatus {
   UNREAD
   READ
+  REPLIED
   ARCHIVED
 }
 
@@ -167,6 +168,8 @@ model ContactMessage {
   userAgent String?
   readAt    DateTime?
   createdAt DateTime      @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo    Boolean       @default(false)
   updatedAt DateTime      @updatedAt
 
   @@index([status, createdAt])
@@ -193,27 +196,29 @@ model Media {
   visibility   Visibility @default(PUBLIC)
   uploadedById String?
   createdAt    DateTime   @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo       Boolean    @default(false)
   updatedAt    DateTime   @updatedAt
 
   uploadedBy User? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
 
-  trustLogos        TrustProfile[]  @relation("TrustLogo")
-  trustHeroes       TrustProfile[]  @relation("TrustHero")
-  settingsOgImages  SiteSetting[]   @relation("SettingsOgImage")
-  trusteePhotos     Trustee[]       @relation("TrusteePhoto")
-  historyImages     HistoryEvent[]  @relation("HistoryImage")
-  activityCovers    Activity[]      @relation("ActivityCover")
-  projectCovers     Project[]       @relation("ProjectCover")
-  testimonialPhotos Testimonial[]   @relation("TestimonialPhoto")
-  storyCovers       Story[]         @relation("StoryCover")
-  documentFiles     Document[]      @relation("DocumentFile")
-  documentOriginals Document[]      @relation("DocumentOriginal")
-  documentThumbs    Document[]      @relation("DocumentThumbnail")
-  reportCovers      AnnualReport[]  @relation("ReportCover")
-  certificateImages Certificate[]   @relation("CertificateImage")
-  albumCovers       GalleryAlbum[]  @relation("AlbumCover")
+  trustLogos        TrustProfile[] @relation("TrustLogo")
+  trustHeroes       TrustProfile[] @relation("TrustHero")
+  settingsOgImages  SiteSetting[]  @relation("SettingsOgImage")
+  trusteePhotos     Trustee[]      @relation("TrusteePhoto")
+  historyImages     HistoryEvent[] @relation("HistoryImage")
+  activityCovers    Activity[]     @relation("ActivityCover")
+  projectCovers     Project[]      @relation("ProjectCover")
+  testimonialPhotos Testimonial[]  @relation("TestimonialPhoto")
+  storyCovers       Story[]        @relation("StoryCover")
+  documentFiles     Document[]     @relation("DocumentFile")
+  documentOriginals Document[]     @relation("DocumentOriginal")
+  documentThumbs    Document[]     @relation("DocumentThumbnail")
+  reportCovers      AnnualReport[] @relation("ReportCover")
+  certificateImages Certificate[]  @relation("CertificateImage")
+  albumCovers       GalleryAlbum[] @relation("AlbumCover")
   galleryImages     GalleryImage[]
-  newsCovers        NewsPost[]      @relation("NewsCover")
+  newsCovers        NewsPost[]     @relation("NewsCover")
 
   @@index([visibility, createdAt])
   @@index([mimeType])
@@ -224,49 +229,51 @@ model Media {
 /// Singleton (id = "default"). Every field except the English name is optional:
 /// unknown official facts stay NULL and render as "pending official information".
 model TrustProfile {
-  id                    String    @id @default("default")
-  nameEn                String
-  nameTa                String?
-  shortNameEn           String?
-  shortNameTa           String?
+  id                     String    @id @default("default")
+  nameEn                 String
+  nameTa                 String?
+  shortNameEn            String?
+  shortNameTa            String?
   /// Hero mission statement.
-  taglineEn             String?
-  taglineTa             String?
-  heroTextEn            String?
-  heroTextTa            String?
-  aboutEn               String?
-  aboutTa               String?
-  historyEn             String?
-  historyTa             String?
-  purposeEn             String?
-  purposeTa             String?
-  geographicFocusEn     String?
-  geographicFocusTa     String?
-  visionEn              String?
-  visionTa              String?
-  missionEn             String?
-  missionTa             String?
+  taglineEn              String?
+  taglineTa              String?
+  heroTextEn             String?
+  heroTextTa             String?
+  aboutEn                String?
+  aboutTa                String?
+  historyEn              String?
+  historyTa              String?
+  purposeEn              String?
+  purposeTa              String?
+  geographicFocusEn      String?
+  geographicFocusTa      String?
+  visionEn               String?
+  visionTa               String?
+  missionEn              String?
+  missionTa              String?
   // Registration & legal (only from official documents)
-  registrationNumber    String?
-  registrationOfficeEn  String?
-  registrationOfficeTa  String?
-  registrationDate      DateTime?
-  legalStatusEn         String?
-  legalStatusTa         String?
-  officialAddressEn     String?
-  officialAddressTa     String?
-  establishedDate       DateTime?
+  registrationNumber     String?
+  registrationOfficeEn   String?
+  registrationOfficeTa   String?
+  registrationDate       DateTime?
+  legalStatusEn          String?
+  legalStatusTa          String?
+  officialAddressEn      String?
+  officialAddressTa      String?
+  establishedDate        DateTime?
   registrationDocumentId String?
   // Public contact
-  publicEmail           String?
-  publicPhone           String?
-  officeHoursEn         String?
-  officeHoursTa         String?
-  mapUrl                String?
-  logoId                String?
-  heroImageId           String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  publicEmail            String?
+  publicPhone            String?
+  officeHoursEn          String?
+  officeHoursTa          String?
+  mapUrl                 String?
+  logoId                 String?
+  heroImageId            String?
+  createdAt              DateTime  @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo                 Boolean   @default(false)
+  updatedAt              DateTime  @updatedAt
 
   logo                 Media?    @relation("TrustLogo", fields: [logoId], references: [id], onDelete: SetNull)
   heroImage            Media?    @relation("TrustHero", fields: [heroImageId], references: [id], onDelete: SetNull)
@@ -293,6 +300,8 @@ model SiteSetting {
   /// Optional privacy-friendly analytics (Plausible) domain.
   analyticsDomain  String?
   createdAt        DateTime        @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo           Boolean         @default(false)
   updatedAt        DateTime        @updatedAt
 
   ogImage Media? @relation("SettingsOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
@@ -306,6 +315,8 @@ model SocialLink {
   sortOrder Int      @default(0)
   isVisible Boolean  @default(true)
   createdAt DateTime @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo    Boolean  @default(false)
   updatedAt DateTime @updatedAt
 
   @@index([sortOrder])
@@ -342,6 +353,8 @@ model Trustee {
   status             ContentStatus @default(DRAFT)
   publishedAt        DateTime?
   createdAt          DateTime      @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo             Boolean       @default(false)
   updatedAt          DateTime      @updatedAt
 
   photo               Media?               @relation("TrusteePhoto", fields: [photoId], references: [id], onDelete: SetNull)
@@ -368,6 +381,8 @@ model TrustObjective {
   status           ContentStatus @default(DRAFT)
   publishedAt      DateTime?
   createdAt        DateTime      @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo           Boolean       @default(false)
   updatedAt        DateTime      @updatedAt
 
   sourceDocument Document? @relation("ObjectiveSource", fields: [sourceDocumentId], references: [id], onDelete: SetNull)
@@ -393,6 +408,8 @@ model HistoryEvent {
   status        ContentStatus @default(DRAFT)
   publishedAt   DateTime?
   createdAt     DateTime      @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo        Boolean       @default(false)
   updatedAt     DateTime      @updatedAt
 
   image    Media?    @relation("HistoryImage", fields: [imageId], references: [id], onDelete: SetNull)
@@ -440,6 +457,8 @@ model Project {
   needTa             String?
   approachEn         String?
   approachTa         String?
+  outcomeEn          String?
+  outcomeTa          String?
   objectivesEn       String?
   objectivesTa       String?
   categoryId         String?
@@ -461,6 +480,8 @@ model Project {
   status             ContentStatus @default(DRAFT)
   publishedAt        DateTime?
   createdAt          DateTime      @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo             Boolean       @default(false)
   updatedAt          DateTime      @updatedAt
 
   category            Category?            @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -479,30 +500,32 @@ model Project {
 }
 
 model Activity {
-  id                   String        @id @default(cuid())
-  slug                 String        @unique
-  titleEn              String
-  titleTa              String?
-  summaryEn            String
-  summaryTa            String?
-  descriptionEn        String?
-  descriptionTa        String?
-  date                 DateTime
-  endDate              DateTime?
-  locationEn           String?
-  locationTa           String?
-  categoryId           String?
-  coverId              String?
-  beneficiaries        Int?
-  beneficiariesNoteEn  String?
-  beneficiariesNoteTa  String?
-  impactEn             String?
-  impactTa             String?
-  projectId            String?
-  status               ContentStatus @default(DRAFT)
-  publishedAt          DateTime?
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
+  id                  String        @id @default(cuid())
+  slug                String        @unique
+  titleEn             String
+  titleTa             String?
+  summaryEn           String
+  summaryTa           String?
+  descriptionEn       String?
+  descriptionTa       String?
+  date                DateTime
+  endDate             DateTime?
+  locationEn          String?
+  locationTa          String?
+  categoryId          String?
+  coverId             String?
+  beneficiaries       Int?
+  beneficiariesNoteEn String?
+  beneficiariesNoteTa String?
+  impactEn            String?
+  impactTa            String?
+  projectId           String?
+  status              ContentStatus @default(DRAFT)
+  publishedAt         DateTime?
+  createdAt           DateTime      @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo              Boolean       @default(false)
+  updatedAt           DateTime      @updatedAt
 
   category      Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   cover         Media?         @relation("ActivityCover", fields: [coverId], references: [id], onDelete: SetNull)
@@ -549,6 +572,8 @@ model ImpactMetric {
   status           ContentStatus @default(DRAFT)
   publishedAt      DateTime?
   createdAt        DateTime      @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo           Boolean       @default(false)
   updatedAt        DateTime      @updatedAt
 
   category       Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -587,6 +612,8 @@ model Document {
   status               ContentStatus    @default(DRAFT)
   publishedAt          DateTime?
   createdAt            DateTime         @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo               Boolean          @default(false)
   updatedAt            DateTime         @updatedAt
 
   category     Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -632,6 +659,8 @@ model AnnualReport {
   status       ContentStatus @default(DRAFT)
   publishedAt  DateTime?
   createdAt    DateTime      @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo       Boolean       @default(false)
   updatedAt    DateTime      @updatedAt
 
   cover      Media?         @relation("ReportCover", fields: [coverId], references: [id], onDelete: SetNull)
@@ -662,6 +691,8 @@ model Certificate {
   status          ContentStatus   @default(DRAFT)
   publishedAt     DateTime?
   createdAt       DateTime        @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo          Boolean         @default(false)
   updatedAt       DateTime        @updatedAt
 
   image               Media?               @relation("CertificateImage", fields: [imageId], references: [id], onDelete: SetNull)
@@ -698,6 +729,8 @@ model VerificationRecord {
   status             ContentStatus      @default(DRAFT)
   publishedAt        DateTime?
   createdAt          DateTime           @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo             Boolean            @default(false)
   updatedAt          DateTime           @updatedAt
 
   document    Document?    @relation(fields: [documentId], references: [id], onDelete: SetNull)
@@ -735,6 +768,8 @@ model Testimonial {
   status               ContentStatus @default(DRAFT)
   publishedAt          DateTime?
   createdAt            DateTime      @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo               Boolean       @default(false)
   updatedAt            DateTime      @updatedAt
 
   photo    Media?    @relation("TestimonialPhoto", fields: [photoId], references: [id], onDelete: SetNull)
@@ -772,6 +807,8 @@ model Story {
   status          ContentStatus @default(DRAFT)
   publishedAt     DateTime?
   createdAt       DateTime      @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo          Boolean       @default(false)
   updatedAt       DateTime      @updatedAt
 
   cover    Media?        @relation("StoryCover", fields: [coverId], references: [id], onDelete: SetNull)
@@ -802,6 +839,8 @@ model GalleryAlbum {
   status        ContentStatus @default(DRAFT)
   publishedAt   DateTime?
   createdAt     DateTime      @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo        Boolean       @default(false)
   updatedAt     DateTime      @updatedAt
 
   category Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -830,29 +869,31 @@ model GalleryImage {
 // ─── News, events & FAQ ─────────────────────────────────────────────────────
 
 model NewsPost {
-  id               String        @id @default(cuid())
-  slug             String        @unique
-  kind             NewsKind      @default(NEWS)
-  titleEn          String
-  titleTa          String?
-  excerptEn        String
-  excerptTa        String?
-  contentEn        String
-  contentTa        String?
-  date             DateTime
-  eventStart       DateTime?
-  eventEnd         DateTime?
-  eventLocationEn  String?
-  eventLocationTa  String?
-  authorName       String?
-  categoryId       String?
-  coverId          String?
-  activityId       String?
-  projectId        String?
-  status           ContentStatus @default(DRAFT)
-  publishedAt      DateTime?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  id              String        @id @default(cuid())
+  slug            String        @unique
+  kind            NewsKind      @default(NEWS)
+  titleEn         String
+  titleTa         String?
+  excerptEn       String
+  excerptTa       String?
+  contentEn       String
+  contentTa       String?
+  date            DateTime
+  eventStart      DateTime?
+  eventEnd        DateTime?
+  eventLocationEn String?
+  eventLocationTa String?
+  authorName      String?
+  categoryId      String?
+  coverId         String?
+  activityId      String?
+  projectId       String?
+  status          ContentStatus @default(DRAFT)
+  publishedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo          Boolean       @default(false)
+  updatedAt       DateTime      @updatedAt
 
   category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   cover    Media?    @relation("NewsCover", fields: [coverId], references: [id], onDelete: SetNull)
@@ -873,6 +914,8 @@ model Faq {
   status      ContentStatus @default(DRAFT)
   publishedAt DateTime?
   createdAt   DateTime      @default(now())
+  /// Fictional demonstration/seed record — never official information.
+  isDemo      Boolean       @default(false)
   updatedAt   DateTime      @updatedAt
 
   @@index([status, sortOrder])

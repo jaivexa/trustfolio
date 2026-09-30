@@ -16,7 +16,9 @@ export async function saveSiteSettings(_prev: ActionState, formData: FormData): 
   if (!parsed.ok) return parsed.state;
   return adminMutation(
     async (user) => {
-      await db.siteSetting.upsert({ where: { id: "default" }, update: parsed.data, create: { id: "default", ...parsed.data, navigation: [] } });
+      const existing = await db.siteSetting.findUnique({ where: { id: "default" }, select: { isDemo: true, seoTitleEn: true } });
+      const isDemo = Boolean(existing?.isDemo && existing.seoTitleEn === parsed.data.seoTitleEn);
+      await db.siteSetting.upsert({ where: { id: "default" }, update: { ...parsed.data, isDemo }, create: { id: "default", ...parsed.data, navigation: [] } });
       await logActivity(user, "UPDATE", "SiteSetting", "default", "Updated SEO & site settings");
       expire(CACHE_TAGS.settings);
       return { status: "success", message: "Settings saved" };

@@ -25,7 +25,7 @@ export function siteTitle(locale: Locale, trust: TrustDTO, settings: SettingsDTO
 }
 
 /** Root metadata for a locale (title template, description, OG, Twitter). */
-export function buildLocaleMetadata(locale: Locale, trust: TrustDTO, settings: SettingsDTO): Metadata {
+export function buildLocaleMetadata(locale: Locale, trust: TrustDTO, settings: SettingsDTO, demo = false): Metadata {
   const title = siteTitle(locale, trust, settings);
   const description = real(text(settings.seoDescription, locale)) ?? text(trust.tagline, locale) ?? undefined;
   const ogImage = absoluteUrl(settings.ogImage?.url ?? `/og?locale=${locale}`);
@@ -53,7 +53,10 @@ export function buildLocaleMetadata(locale: Locale, trust: TrustDTO, settings: S
       images: [ogImage],
       ...(settings.twitterHandle ? { site: settings.twitterHandle } : {}),
     },
-    robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
+    // Fictional demo content must never be indexed as a real organisation.
+    robots: demo
+      ? { index: false, follow: false }
+      : { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
     formatDetection: { telephone: false },
   };
 }
@@ -101,7 +104,7 @@ export function pageMetadata({
 type JsonLd = Record<string, unknown>;
 
 export function organizationJsonLd(locale: Locale, trust: TrustDTO): JsonLd | null {
-  if (trust.namePending) return null;
+  if (trust.namePending || trust.isDemo) return null;
   return {
     "@context": "https://schema.org",
     "@type": "NGO",

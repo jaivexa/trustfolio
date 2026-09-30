@@ -148,6 +148,7 @@ export const projectSchema = z
     ...biOpt("content", 20000),
     ...biOpt("need", 10000),
     ...biOpt("approach", 10000),
+    ...biOpt("outcome", 10000),
     ...biOpt("objectives", 6000),
     ...biOpt("location", 200),
     ...biOpt("externalUrlLabel", 80),

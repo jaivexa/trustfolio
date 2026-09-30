@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" width="400" height="480" role="img" aria-label="Demo portrait placeholder">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3f7d4a"/><stop offset="1" stop-color="#1f4d2b"/></linearGradient><pattern id="k" width="60" height="60" patternUnits="userSpaceOnUse">
+    <circle cx="30" cy="30" r="2.5" fill="#fff" opacity=".35"/>
+    <path d="M30 12a18 18 0 0 1 18 18M30 48a18 18 0 0 1-18-18" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2"/>
+  </pattern></defs>
+  <rect width="400" height="480" fill="url(#g)"/>
+  <rect width="400" height="480" fill="url(#k)"/>
+  <circle cx="200" cy="190" r="78" fill="#e6d38a" opacity=".9"/>
+  <path d="M60 480c10-110 70-170 140-170s130 60 140 170z" fill="#e6d38a" opacity=".9"/>
+  <g transform="translate(141 24)"><rect width="118" height="34" rx="17" fill="#000" fill-opacity=".28"/><text x="59" y="23" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" letter-spacing="3" fill="#fff">DEMO</text></g>
+</svg>

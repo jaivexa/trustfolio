@@ -34,6 +34,7 @@ export function DocumentForm({ id, record, options }: { id: string | null; recor
       id={id}
       name={record?.titleEn}
       status={record?.status}
+      isDemo={record?.isDemo}
       publicHref={record && record.visibility === "PUBLIC" ? `/documents/${record.slug}` : null}
       action={saveDocument.bind(null, id)}
       aside={
@@ -100,6 +101,7 @@ export function ReportForm({ id, record, options }: { id: string | null; record:
       id={id}
       name={record ? `${record.periodLabel} — ${record.titleEn}` : undefined}
       status={record?.status}
+      isDemo={record?.isDemo}
       publicHref={record ? `/reports/${record.slug}` : null}
       action={saveReport.bind(null, id)}
       aside={
@@ -157,6 +159,7 @@ export function CertificateForm({ id, record, options }: { id: string | null; re
       id={id}
       name={record?.titleEn}
       status={record?.status}
+      isDemo={record?.isDemo}
       publicHref={record ? "/certificates" : null}
       action={saveCertificate.bind(null, id)}
       aside={
@@ -215,6 +218,7 @@ export function VerificationForm({ id, record, options }: { id: string | null; r
       id={id}
       name={record?.titleEn}
       status={record?.status}
+      isDemo={record?.isDemo}
       publicHref={record ? "/verification" : null}
       action={saveVerificationRecord.bind(null, id)}
       aside={

@@ -24,7 +24,7 @@ export const BILINGUAL_FIELDS: Record<ResourceKey, string[]> = {
   objectives: ["title", "description"],
   history: ["title", "description", "dateLabel"],
   activities: ["title", "summary", "description", "location", "beneficiariesNote", "impact"],
-  projects: ["title", "summary", "content", "need", "approach", "objectives", "location", "externalUrlLabel", "seoTitle", "seoDescription"],
+  projects: ["title", "summary", "content", "need", "approach", "outcome", "objectives", "location", "externalUrlLabel", "seoTitle", "seoDescription"],
   metrics: ["label", "unit", "periodLabel", "methodology"],
   testimonials: ["name", "role", "organization", "content", "relationship"],
   stories: ["title", "summary", "subject", "challenge", "support", "journey", "outcome"],
@@ -54,6 +54,8 @@ export type ResourceRow = {
   flags: string[];
   thumbUrl: string | null;
   publicHref: string | null;
+  /** Fictional seed record. */
+  isDemo: boolean;
 };
 
 type Base = { id: string; status: "DRAFT" | "PUBLISHED" | "ARCHIVED"; updatedAt: Date } & Record<string, unknown>;
@@ -69,6 +71,7 @@ function row(resource: ResourceKey, r: Base, extra: Partial<ResourceRow> & { tit
     thumbUrl: null,
     publicHref: null,
     titleTa: null,
+    isDemo: r.isDemo === true,
     ...extra,
   };
 }
@@ -302,6 +305,7 @@ export const getDashboardData = adminQuery(async () => {
         published: rows.filter((r) => r.status === "PUBLISHED").length,
         drafts: rows.filter((r) => r.status === "DRAFT").length,
         untranslated: rows.filter((r) => r.missing.length > 0).length,
+        demo: rows.filter((r) => r.isDemo).length,
       };
     }),
   );
@@ -345,14 +349,14 @@ export const listMessages = adminQuery(async (filter: "inbox" | "unread" | "arch
       where,
       orderBy: { createdAt: "desc" },
       take: 200,
-      select: { id: true, name: true, email: true, phone: true, subject: true, message: true, status: true, locale: true, createdAt: true },
+      select: { id: true, name: true, email: true, phone: true, subject: true, message: true, status: true, locale: true, isDemo: true, createdAt: true },
     }),
     db.contactMessage.groupBy({ by: ["status"], _count: { _all: true } }),
   ]);
   const byStatus = Object.fromEntries(counts.map((c) => [c.status, c._count._all])) as Partial<Record<MessageStatus, number>>;
   return {
     messages,
-    counts: { inbox: (byStatus.UNREAD ?? 0) + (byStatus.READ ?? 0), unread: byStatus.UNREAD ?? 0, archived: byStatus.ARCHIVED ?? 0 },
+    counts: { inbox: (byStatus.UNREAD ?? 0) + (byStatus.READ ?? 0) + (byStatus.REPLIED ?? 0), unread: byStatus.UNREAD ?? 0, archived: byStatus.ARCHIVED ?? 0 },
   };
 });
 

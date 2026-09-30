@@ -35,6 +35,8 @@ export type TrustDTO = {
   name: Localized;
   /** True until the official name has been entered in the admin. */
   namePending: boolean;
+  /** The profile is fictional seed data (see prisma/demo). */
+  isDemo: boolean;
   shortName: OptionalLocalized;
   tagline: OptionalLocalized;
   heroText: OptionalLocalized;
@@ -267,6 +269,7 @@ export type ProjectDTO = ProjectCardDTO & {
   content: OptionalLocalized;
   need: OptionalLocalized;
   approach: OptionalLocalized;
+  outcome: OptionalLocalized;
   objectives: OptionalLocalized;
   externalUrl: string | null;
   externalUrlLabel: OptionalLocalized;
@@ -307,6 +310,7 @@ export type ReportCardDTO = {
   documentEn: DocumentCardDTO | null;
   documentTa: DocumentCardDTO | null;
   updatedAt: string;
+  isDemo: boolean;
 };
 
 export type ReportDTO = ReportCardDTO & {

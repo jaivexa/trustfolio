@@ -12,6 +12,8 @@ export const en = {
     pendingOfficial: "Content pending official information",
     lastUpdated: "Last updated {date}",
     notifications: "Notifications",
+    demoBanner: "Demonstration website — the organisation, people, figures and documents shown here are fictional sample data.",
+    demoLabel: "Demo",
   },
   nav: {
     home: "Home",
@@ -153,6 +155,7 @@ export const en = {
     featured: "Featured",
     need: "The need",
     approach: "Our approach",
+    outcome: "Outcome",
     objectives: "Objectives",
     overview: "Overview",
     activities: "Activities",
@@ -277,6 +280,8 @@ export const en = {
     financial: "Accountability & finances",
     metrics: "Figures reported",
     report: "Annual report {period}",
+    noDocument: "The report document has not been uploaded yet.",
+    demoNoDocument: "Demo report metadata — document not uploaded.",
   },
   certificates: {
     title: "Certificates & recognition",

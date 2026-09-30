@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0284c7"/><stop offset="1" stop-color="#6366f1"/></linearGradient>
-    <radialGradient id="r" cx=".2" cy=".1" r=".9"><stop offset="0" stop-color="#fff" stop-opacity=".25"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
-    <pattern id="p" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0v40" fill="none" stroke="#fff" stroke-opacity=".07"/></pattern>
-  </defs>
-  <rect width="1200" height="630" fill="url(#g)"/><rect width="1200" height="630" fill="url(#p)"/><rect width="1200" height="630" fill="url(#r)"/>
-  <g fill="#fff"><rect x="430" y="320" width="34" height="120" rx="8" fill-opacity="0.35"/><rect x="484" y="240" width="34" height="200" rx="8" fill-opacity="0.43999999999999995"/><rect x="538" y="290" width="34" height="150" rx="8" fill-opacity="0.53"/><rect x="592" y="180" width="34" height="260" rx="8" fill-opacity="0.62"/><rect x="646" y="250" width="34" height="190" rx="8" fill-opacity="0.71"/><rect x="700" y="140" width="34" height="300" rx="8" fill-opacity="0.7999999999999999"/><rect x="754" y="200" width="34" height="240" rx="8" fill-opacity="0.89"/></g>
-</svg>

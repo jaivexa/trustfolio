@@ -12,6 +12,7 @@ import { BilingualField, BilingualHeader } from "@/components/admin/bilingual";
 import { EntityForm } from "@/components/admin/entity-form";
 import { Thumb, uploadMedia } from "@/components/admin/pickers";
 import { DeleteButton } from "@/components/admin/row-actions";
+import { DemoBadge } from "@/components/admin/demo-badge";
 import { cn } from "@/lib/utils";
 import { deleteMedia, updateMediaMeta } from "@/server/actions/admin/media";
 import type { AdminMedia } from "@/server/queries/admin-media";
@@ -148,6 +149,7 @@ export function MediaLibrary({ items }: { items: AdminMedia[] }) {
               >
                 <Thumb media={m} className="aspect-square" />
                 <span className="truncate px-1 text-xs font-medium">{m.filename}</span>
+                {m.isDemo && <DemoBadge className="mx-1 w-fit" />}
                 <span className="flex items-center gap-1 px-1 pb-0.5 text-[11px] text-muted-foreground">
                   {m.mimeType === "application/pdf" ? <FileText className="size-3" aria-hidden="true" /> : <ImageIcon className="size-3" aria-hidden="true" />}
                   {size(m.size)}
@@ -183,6 +185,7 @@ export function MediaLibrary({ items }: { items: AdminMedia[] }) {
               <div className="grid gap-5 md:grid-cols-[14rem_1fr]">
                 <div className="grid content-start gap-2">
                   <Thumb media={editing} className="aspect-square" />
+                  {editing.isDemo && <DemoBadge className="w-fit" />}
                   <Badge variant={editing.visibility === "PRIVATE" ? "warning" : "outline"}>{editing.visibility === "PRIVATE" ? "Private — admins only" : "Public"}</Badge>
                   <div className="flex flex-wrap gap-1.5">
                     <Button asChild variant="outline" size="sm">

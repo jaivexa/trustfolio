@@ -51,6 +51,7 @@ export const getTrust = cached(
     return {
       name: l10n(real(p?.nameEn) ?? "", real(p?.nameTa)),
       namePending: !real(p?.nameEn),
+      isDemo: p?.isDemo === true,
       shortName: opt(p?.shortNameEn, p?.shortNameTa),
       tagline: opt(p?.taglineEn, p?.taglineTa),
       heroText: opt(p?.heroTextEn, p?.heroTextTa),
@@ -319,4 +320,29 @@ export const getTestimonials = cached(
   },
   "testimonials",
   [CACHE_TAGS.testimonials, CACHE_TAGS.projects],
+);
+
+/**
+ * True when any fictional seed content is visible on the public site. Drives
+ * the "demonstration website" banner, noindex and the omission of
+ * Organization structured data, so demo data is never presented as real.
+ */
+export const getDemoStatus = cached(
+  async (): Promise<{ active: boolean }> => {
+    const demo = { isDemo: true, ...PUBLISHED };
+    const counts = await Promise.all([
+      db.trustProfile.count({ where: { isDemo: true } }),
+      db.project.count({ where: demo }),
+      db.activity.count({ where: demo }),
+      db.trustee.count({ where: demo }),
+      db.newsPost.count({ where: demo }),
+      db.document.count({ where: demo }),
+      db.impactMetric.count({ where: demo }),
+      db.testimonial.count({ where: demo }),
+      db.galleryAlbum.count({ where: demo }),
+    ]);
+    return { active: counts.some((n) => n > 0) };
+  },
+  "demo-status",
+  [CACHE_TAGS.trust, CACHE_TAGS.projects, CACHE_TAGS.activities, CACHE_TAGS.trustees, CACHE_TAGS.news, CACHE_TAGS.documents, CACHE_TAGS.impact, CACHE_TAGS.testimonials, CACHE_TAGS.gallery],
 );

@@ -117,7 +117,7 @@ npx auth secret                   # or: openssl rand -base64 32 → AUTH_SECRET
 createdb trustfolio               # example for a local Postgres
 
 npm run db:deploy                 # apply migrations
-npm run db:seed                   # admin user + placeholders + categories (no invented content)
+npm run db:seed                   # admin user + categories (+ labelled demo data outside production)
 npm run dev                       # http://localhost:3000 → redirects to /en or /ta
 ```
 
@@ -125,14 +125,43 @@ Sign in at **http://localhost:3000/admin** with `ADMIN_EMAIL` / `ADMIN_PASSWORD`
 
 ### Demo content
 
-To preview the design with realistic-looking but clearly labelled sample data:
+`npx prisma db seed` loads a complete **fictional** dataset outside production so every page can be tested. It uses a made-up organisation, the "Aram Community Trust" (அறம் சமூக அறக்கட்டளை), set around Thirumangalam, Madurai. The dataset includes:
+
+- **People:** a founder and 5 trustees.
+- **Purpose:** 6 objectives and 6 history events.
+- **Work:** 8 projects (one a draft), 12 activities, 24 impact figures (10 organisation-wide for 2025–26, 4 for 2024–25 and 10 per project), 6 testimonials (one a draft) and 5 stories.
+- **Evidence:** 6 documents with demo PDFs, 2 annual reports (the 2024–25 one deliberately has no PDF), 4 certificates and 3 Evidence Center records.
+- **Other content:** 6 gallery albums, 8 news posts and events (one draft, one archived, one intentionally without Tamil), 4 FAQs and 8 contact messages in every status.
+
+Every row has `isDemo = true` and a deterministic `demo-…` id, so re-running the seed updates rows instead of duplicating them.
+
+**What the demo data never contains:** registration numbers, government approvals, audited or financial statements, verified testimonials, issuer verification links or real people's details.
+
+- Certificates use `DEMO-CERT-00x` ids from a fictional issuer.
+- Contact details are `demo@trustfolio.example` and `+91 00000 00000`.
+- Social links point to `example.com`.
+- Images are original SVG placeholders in `public/demo` (regenerate with `npm run demo:assets`).
+
+**While demo data is visible:**
+
+- The public site shows a bilingual "demonstration website" banner and is `noindex`, with no Organization structured data.
+- The admin marks every demo record **DEMO DATA** and adds a "Demo data" filter to each list.
 
 ```bash
-npm run db:seed:demo     # adds [DEMO] / "Sample" / "மாதிரி" records and /demo/* images
-npm run db:demo:clear    # removes all of it again
+npx prisma db seed           # admin + categories + demo data (demo skipped when NODE_ENV=production)
+SEED_DEMO=false npm run db:seed   # structure only — use this for a real deployment
+npm run db:seed:demo         # add/refresh demo data only
+npm run db:demo:clear        # delete every isDemo row; reset a demo profile/settings to placeholders
+npm run db:reset-demo        # clear, then seed demo again (explicit, never part of db:seed)
+npm run db:audit-demo        # check relations, Tamil coverage, demo flags and that no official claims exist
 ```
 
-The demo seed refuses to run when `NODE_ENV=production` unless `--force` is passed. It only fills trust-profile fields that are empty or still pending.
+**Real records are protected:**
+
+- The seed never modifies non-demo records. The trust profile and settings are only filled while they are empty, pending or already demo, and slugs used by real records are skipped.
+- Changing the registered name of a demo profile in the admin marks it official, so `db:demo:clear` will not reset it.
+
+**After seeding or clearing a running site,** use **Refresh public website** on the admin dashboard (cached pages otherwise update within a day).
 
 ### Users
 
@@ -153,7 +182,8 @@ Admins can also add users from **Users** in the dashboard; a temporary password 
 | `npm run db:migrate` | Create and apply migrations in development |
 | `npm run db:deploy` | Apply migrations (production) |
 | `npm run db:seed` | Production-safe seed (safe to re-run) |
-| `npm run db:seed:demo` / `npm run db:demo:clear` | Add / remove labelled demo content |
+| `npm run db:seed:demo` / `npm run db:demo:clear` / `npm run db:reset-demo` | Add / remove / rebuild labelled demo content |
+| `npm run db:audit-demo` | Audit the seeded data |
 | `npm run admin:create` | Create a user or reset a password |
 | `npm run db:studio` | Prisma Studio |
 
@@ -171,7 +201,9 @@ See [`.env.example`](.env.example).
 | `BLOB_READ_WRITE_TOKEN` | with blob | Created when you connect a Vercel Blob store. |
 | `UPLOAD_MAX_MB` | – | Default `8` |
 | `RESEND_API_KEY`, `EMAIL_FROM`, `CONTACT_NOTIFY_EMAIL` | – | Optional email notification for new contact messages. |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | seed only | Used by `db:seed` and `admin:create`. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | seed | Required by `db:seed` (it fails clearly if missing or weak). The password is hashed and never printed. |
+| `ADMIN_RESET_PASSWORD` | – | `true` makes the seed reset an existing admin's password to `ADMIN_PASSWORD`. |
+| `SEED_DEMO` | – | `true`/`false` overrides whether the seed loads demo data (default: on outside production). |
 
 Secrets are only read on the server (`src/lib/env.ts` is `server-only`); the only public variable is `NEXT_PUBLIC_SITE_URL`.
 
@@ -205,7 +237,7 @@ Secrets are only read on the server (`src/lib/env.ts` is `server-only`); the onl
 4. **Build command.** Use `npm run vercel-build`, which runs `prisma generate && prisma migrate deploy && next build`. The database must be reachable at build time.
 5. **Seed once** against the production database:
    ```bash
-   DATABASE_URL="<prod url>" ADMIN_EMAIL=you@domain.org ADMIN_PASSWORD='<strong password>' npm run db:seed
+   DATABASE_URL="<prod url>" SEED_DEMO=false ADMIN_EMAIL=you@domain.org ADMIN_PASSWORD='<strong password>' npm run db:seed
    ```
 6. Sign in at `/admin` and complete the trust profile.
 

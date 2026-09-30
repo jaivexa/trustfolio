@@ -17,7 +17,10 @@
     "admin:create": "tsx scripts/create-admin.ts",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "db:seed:demo": "tsx scripts/seed-demo.ts",
-    "db:demo:clear": "tsx scripts/clear-demo.ts"
+    "db:demo:clear": "tsx scripts/clear-demo.ts",
+    "db:reset-demo": "tsx scripts/clear-demo.ts && tsx scripts/seed-demo.ts",
+    "demo:assets": "node scripts/generate-demo-assets.mjs",
+    "db:audit-demo": "tsx scripts/audit-demo.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",

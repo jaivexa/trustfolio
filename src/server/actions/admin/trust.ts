@@ -13,7 +13,11 @@ export async function saveTrustProfile(_prev: ActionState, formData: FormData): 
   if (!parsed.ok) return parsed.state;
   return adminMutation(
     async (user) => {
-      await db.trustProfile.upsert({ where: { id: "default" }, update: parsed.data, create: { id: "default", ...parsed.data } });
+      // A demo profile becomes official once its registered name is changed, so
+      // `db:demo:clear` can never wipe information an administrator entered.
+      const existing = await db.trustProfile.findUnique({ where: { id: "default" }, select: { isDemo: true, nameEn: true } });
+      const isDemo = Boolean(existing?.isDemo && existing.nameEn === parsed.data.nameEn);
+      await db.trustProfile.upsert({ where: { id: "default" }, update: { ...parsed.data, isDemo }, create: { id: "default", ...parsed.data } });
       await logActivity(user, "UPDATE", "TrustProfile", "default", "Updated trust profile");
       expire(CACHE_TAGS.trust);
       return { status: "success", message: "Trust profile saved" };

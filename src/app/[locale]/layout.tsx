@@ -3,11 +3,12 @@ import Script from "next/script";
 import { Providers } from "@/components/providers";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { DemoBanner } from "@/components/layout/demo-banner";
 import { brandName, buildNav } from "@/components/layout/chrome";
 import { fontVariables } from "@/lib/fonts";
 import { getPageContext, LOCALES, localePath, LOCALE_TAGS } from "@/lib/i18n";
 import { buildLocaleMetadata } from "@/lib/seo";
-import { getSettings, getTrust } from "@/server/queries/public";
+import { getDemoStatus, getSettings, getTrust } from "@/server/queries/public";
 import "../globals.css";
 
 // Unknown locales 404 in getPageContext. `dynamicParams` must stay at its
@@ -19,8 +20,8 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await getPageContext(params);
-  const [trust, settings] = await Promise.all([getTrust(), getSettings()]);
-  return buildLocaleMetadata(locale, trust, settings);
+  const [trust, settings, demo] = await Promise.all([getTrust(), getSettings(), getDemoStatus()]);
+  return buildLocaleMetadata(locale, trust, settings, demo.active);
 }
 
 export const viewport: Viewport = {
@@ -33,7 +34,7 @@ export const viewport: Viewport = {
 
 export default async function LocaleLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale, t } = await getPageContext(params);
-  const [trust, settings] = await Promise.all([getTrust(), getSettings()]);
+  const [trust, settings, demo] = await Promise.all([getTrust(), getSettings(), getDemoStatus()]);
   const nav = buildNav(locale, t, settings);
   const brand = brandName(locale, t, trust);
   const defaultTheme = settings.defaultTheme.toLowerCase() as "light" | "dark" | "system";
@@ -48,6 +49,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
           >
             {t.meta.skipToContent}
           </a>
+          {demo.active && <DemoBanner label={t.meta.demoLabel} message={t.meta.demoBanner} />}
           <SiteHeader
             locale={locale}
             brand={{ ...brand, logoUrl: trust.logo?.url ?? null }}

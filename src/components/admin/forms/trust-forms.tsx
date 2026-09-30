@@ -23,6 +23,7 @@ export function TrusteeForm({ id, record, options }: { id: string | null; record
       id={id}
       name={record?.nameEn}
       status={record?.status}
+      isDemo={record?.isDemo}
       publicHref={record ? `/trustees/${record.slug}` : null}
       action={saveTrustee.bind(null, id)}
       aside={
@@ -94,6 +95,7 @@ export function ObjectiveForm({ id, record, options }: { id: string | null; reco
       id={id}
       name={record?.titleEn}
       status={record?.status}
+      isDemo={record?.isDemo}
       action={saveObjective.bind(null, id)}
       aside={
         <FormSection title="Publishing">
@@ -122,6 +124,7 @@ export function HistoryForm({ id, record, options }: { id: string | null; record
       id={id}
       name={record?.titleEn}
       status={record?.status}
+      isDemo={record?.isDemo}
       action={saveHistoryEvent.bind(null, id)}
       aside={
         <>
@@ -158,6 +161,7 @@ export function FaqForm({ id, record }: { id: string | null; record: Loaded<type
       id={id}
       name={record?.questionEn}
       status={record?.status}
+      isDemo={record?.isDemo}
       action={saveFaq.bind(null, id)}
       aside={
         <FormSection title="Publishing">

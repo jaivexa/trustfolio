@@ -157,6 +157,12 @@ export default async function ProjectPage({ params }: PageProps<"/[locale]/proje
                 <LocalizedMarkdown value={project.approach} locale={locale} t={t} />
               </Reveal>
             )}
+            {project.outcome && (
+              <Reveal as="section">
+                <h2 className="mb-4 text-2xl">{t.projects.outcome}</h2>
+                <LocalizedMarkdown value={project.outcome} locale={locale} t={t} />
+              </Reveal>
+            )}
             {project.objectives && (
               <Reveal as="section">
                 <h2 className="mb-4 text-2xl">{t.projects.objectives}</h2>

@@ -13,6 +13,8 @@ export const ta: Dictionary = {
     pendingOfficial: "அதிகாரப்பூர்வ தகவலுக்காகக் காத்திருக்கிறது",
     lastUpdated: "கடைசியாகப் புதுப்பிக்கப்பட்டது: {date}",
     notifications: "அறிவிப்புகள்",
+    demoBanner: "மாதிரி இணையதளம் — இங்கு காட்டப்படும் அமைப்பு, நபர்கள், எண்ணிக்கைகள், ஆவணங்கள் அனைத்தும் கற்பனையான மாதிரித் தரவு.",
+    demoLabel: "மாதிரி",
   },
   nav: {
     home: "முகப்பு",
@@ -154,6 +156,7 @@ export const ta: Dictionary = {
     featured: "சிறப்புத் திட்டம்",
     need: "தேவை",
     approach: "எங்கள் அணுகுமுறை",
+    outcome: "விளைவு",
     objectives: "குறிக்கோள்கள்",
     overview: "கண்ணோட்டம்",
     activities: "செயல்பாடுகள்",
@@ -283,6 +286,8 @@ export const ta: Dictionary = {
     financial: "பொறுப்புணர்வு & நிதி",
     metrics: "அறிக்கையிடப்பட்ட எண்ணிக்கைகள்",
     report: "ஆண்டறிக்கை {period}",
+    noDocument: "அறிக்கை ஆவணம் இன்னும் பதிவேற்றப்படவில்லை.",
+    demoNoDocument: "மாதிரி அறிக்கை விவரங்கள் — ஆவணம் பதிவேற்றப்படவில்லை.",
   },
   certificates: {
     title: "சான்றிதழ்கள் & அங்கீகாரங்கள்",

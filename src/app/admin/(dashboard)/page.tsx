@@ -4,6 +4,8 @@ import { AlertTriangle, ArrowRight, CheckCircle2, CircleDashed, Inbox, Languages
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/admin/page-header";
+import { DemoBadge } from "@/components/admin/demo-badge";
+import { RefreshCacheButton } from "@/components/admin/refresh-cache-button";
 import { RESOURCES, type ResourceKey } from "@/lib/admin-resources";
 import { formatRelative } from "@/lib/utils";
 import { requireAdminPage } from "@/server/auth-guard";
@@ -35,6 +37,7 @@ export default async function AdminDashboardPage() {
   const untranslated = data.counts.reduce((sum, c) => sum + c.untranslated, 0);
   const drafts = data.counts.reduce((sum, c) => sum + c.drafts, 0);
   const published = data.counts.reduce((sum, c) => sum + c.published, 0);
+  const demo = data.counts.reduce((sum, c) => sum + c.demo, 0);
 
   return (
     <>
@@ -49,6 +52,28 @@ export default async function AdminDashboardPage() {
           </Button>
         ))}
       />
+
+      {(demo > 0 || trust.isDemo) && (
+        <div role="note" className="mb-6 flex flex-col gap-3 rounded-2xl border border-dashed border-warning/60 bg-warning/10 p-4 sm:flex-row sm:items-center">
+          <DemoBadge className="self-start sm:self-center" />
+          <div className="flex-1 text-sm">
+            <p className="font-medium">
+              {demo} fictional demo records are loaded{trust.isDemo ? ", including the demo trust profile" : ""}.
+            </p>
+            <p className="text-muted-foreground">
+              They exist to test the website and are shown to visitors with a “demonstration” banner. Remove them before publishing official information:{" "}
+              <code className="text-xs">npm run db:demo:clear</code>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {user.role === "ADMIN" && (
+        <div className="mb-6 flex flex-col gap-2 rounded-2xl border bg-card p-4 text-sm shadow-soft sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-muted-foreground">Changed data outside the dashboard (seed, clear or a database import)? Refresh the website so visitors see it now.</p>
+          <RefreshCacheButton />
+        </div>
+      )}
 
       {trust.namePending && (
         <div role="alert" className="mb-6 flex flex-col gap-3 rounded-2xl border border-warning/40 bg-warning/10 p-4 sm:flex-row sm:items-center">

@@ -31,6 +31,13 @@ export default async function TrustProfilePage() {
         Enter only what appears in the trust&apos;s official documents. Leave a field empty rather than estimate it — empty fields show “{PENDING_MARKER}” or are hidden
         on the website. Official Tamil wording should come from the registered Tamil documents, not a new translation.
       </p>
+      {p?.isDemo && (
+        <p role="note" className="mb-6 rounded-xl border border-dashed border-warning/60 bg-warning/10 p-4 text-sm">
+          <strong>Demo data.</strong> This profile describes the fictional “Aram Community Trust” from the seed. Replace every field with official
+          information, or run <code className="text-xs">npm run db:demo:clear</code> to reset it to placeholders. Changing the registered name marks the
+          profile as official (it will then never be reset). Other demo records stay until you clear them.
+        </p>
+      )}
       <TranslationProvider>
         <EntityForm action={saveTrustProfile}>
           <TranslationSummary />

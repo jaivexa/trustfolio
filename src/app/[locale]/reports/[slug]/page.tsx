@@ -85,6 +85,11 @@ export default async function ReportPage({ params }: PageProps<"/[locale]/report
             ))}
           </div>
           <div className="min-w-0 lg:col-span-5">
+            {!primary?.file && (
+              <p role="note" className="rounded-2xl border border-dashed bg-muted/40 p-6 text-sm text-muted-foreground">
+                {report.isDemo ? t.reports.demoNoDocument : t.reports.noDocument}
+              </p>
+            )}
             {primary?.file && (
               <DocumentViewer
                 file={primary.file}

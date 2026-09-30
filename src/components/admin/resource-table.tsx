@@ -20,10 +20,11 @@ import {
 import { RESOURCES, STATUS_LABELS, type BulkOperation, type ResourceKey } from "@/lib/admin-resources";
 import { cn } from "@/lib/utils";
 import { bulkAction } from "@/server/actions/admin/bulk";
+import { DemoBadge } from "@/components/admin/demo-badge";
 import type { ResourceRow } from "@/server/queries/admin";
 
 const PAGE_SIZE = 20;
-type StatusFilter = "all" | ResourceRow["status"] | "untranslated";
+type StatusFilter = "all" | ResourceRow["status"] | "untranslated" | "demo";
 
 const STATUS_VARIANT = { PUBLISHED: "success", DRAFT: "secondary", ARCHIVED: "outline" } as const;
 
@@ -68,6 +69,7 @@ export function ResourceTable({ resource, rows }: { resource: ResourceKey; rows:
       DRAFT: rows.filter((r) => r.status === "DRAFT").length,
       ARCHIVED: rows.filter((r) => r.status === "ARCHIVED").length,
       untranslated: rows.filter((r) => r.missing.length > 0).length,
+      demo: rows.filter((r) => r.isDemo).length,
     }),
     [rows],
   );
@@ -75,7 +77,7 @@ export function ResourceTable({ resource, rows }: { resource: ResourceKey; rows:
   const filtered = useMemo(() => {
     const q = query.trim().toLocaleLowerCase();
     return rows.filter((r) => {
-      if (filter === "untranslated" ? r.missing.length === 0 : filter !== "all" && r.status !== filter) return false;
+      if (filter === "untranslated" ? r.missing.length === 0 : filter === "demo" ? !r.isDemo : filter !== "all" && r.status !== filter) return false;
       if (!q) return true;
       return [r.title, r.titleTa, r.subtitle].some((v) => v?.toLocaleLowerCase().includes(q));
     });
@@ -123,6 +125,7 @@ export function ResourceTable({ resource, rows }: { resource: ResourceKey; rows:
     { key: "DRAFT", label: "Drafts" },
     { key: "ARCHIVED", label: "Archived" },
     { key: "untranslated", label: "Tamil missing" },
+    ...(counts.demo > 0 ? [{ key: "demo" as const, label: "Demo data" }] : []),
   ];
 
   return (
@@ -239,6 +242,7 @@ export function ResourceTable({ resource, rows }: { resource: ResourceKey; rows:
                           <Link prefetch={false} href={`${config.href}/${row.id}`} className="font-medium hover:underline">
                             {row.title}
                           </Link>
+                          {row.isDemo && <DemoBadge className="ml-2" />}
                           {row.titleTa && (
                             <p lang="ta" className="truncate text-xs text-muted-foreground">
                               {row.titleTa}

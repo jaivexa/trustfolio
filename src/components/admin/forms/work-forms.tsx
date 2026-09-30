@@ -30,6 +30,7 @@ export function ProjectForm({ id, record, options }: { id: string | null; record
       id={id}
       name={record?.titleEn}
       status={record?.status}
+      isDemo={record?.isDemo}
       publicHref={record ? `/projects/${record.slug}` : null}
       action={saveProject.bind(null, id)}
       aside={
@@ -60,6 +61,7 @@ export function ProjectForm({ id, record, options }: { id: string | null; record
         <BilingualField name="need" label="The need" kind="markdown" rows={6} maxLength={10000} defaultEn={record?.needEn} defaultTa={record?.needTa} />
         <BilingualField name="objectives" label="Objectives" kind="markdown" rows={5} maxLength={6000} defaultEn={record?.objectivesEn} defaultTa={record?.objectivesTa} />
         <BilingualField name="approach" label="Approach" kind="markdown" rows={6} maxLength={10000} defaultEn={record?.approachEn} defaultTa={record?.approachTa} />
+        <BilingualField name="outcome" label="Outcome" kind="markdown" rows={5} maxLength={10000} description="What changed — only what the trust can support with records." defaultEn={record?.outcomeEn} defaultTa={record?.outcomeTa} />
         <BilingualField name="content" label="Further details" kind="markdown" rows={8} maxLength={20000} defaultEn={record?.contentEn} defaultTa={record?.contentTa} />
       </BilingualSection>
       <FormSection title="Evidence" description="Link the documents that support this project. Activities, metrics, stories and albums link to the project from their own forms.">
@@ -83,6 +85,7 @@ export function ActivityForm({ id, record, options }: { id: string | null; recor
       id={id}
       name={record?.titleEn}
       status={record?.status}
+      isDemo={record?.isDemo}
       publicHref={record ? `/activities/${record.slug}` : null}
       action={saveActivity.bind(null, id)}
       aside={
@@ -128,6 +131,7 @@ export function MetricForm({ id, record, options }: { id: string | null; record:
       id={id}
       name={record ? `${record.labelEn}` : undefined}
       status={record?.status}
+      isDemo={record?.isDemo}
       action={saveMetric.bind(null, id)}
       aside={
         <>
@@ -185,6 +189,7 @@ export function TestimonialForm({ id, record, options }: { id: string | null; re
       id={id}
       name={record?.nameEn}
       status={record?.status}
+      isDemo={record?.isDemo}
       action={saveTestimonial.bind(null, id)}
       aside={
         <>
@@ -233,6 +238,7 @@ export function StoryForm({ id, record, options }: { id: string | null; record: 
       id={id}
       name={record?.titleEn}
       status={record?.status}
+      isDemo={record?.isDemo}
       publicHref={record ? `/stories/${record.slug}` : null}
       action={saveStory.bind(null, id)}
       aside={

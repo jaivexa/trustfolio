@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Archive, ArchiveRestore, Inbox, Mail, MailOpen, Reply } from "lucide-react";
+import { Archive, ArchiveRestore, CheckCheck, Inbox, Mail, MailOpen, Reply } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { DeleteButton } from "@/components/admin/row-actions";
+import { DemoBadge } from "@/components/admin/demo-badge";
 import { deleteMessage, markMessageRead, setMessageStatus } from "@/server/actions/admin/messages";
 import { cn, formatDate, formatRelative } from "@/lib/utils";
 
@@ -19,7 +20,8 @@ type Message = {
   locale: string | null;
   subject: string;
   message: string;
-  status: "UNREAD" | "READ" | "ARCHIVED";
+  status: "UNREAD" | "READ" | "REPLIED" | "ARCHIVED";
+  isDemo: boolean;
   createdAt: string;
 };
 
@@ -76,6 +78,12 @@ export function MessageInbox({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-3">
                     <p className={cn("truncate text-sm", unread && "font-semibold")}>
+                      {message.isDemo && <DemoBadge className="mr-1.5" />}
+                      {message.status === "REPLIED" && (
+                        <Badge variant="success" className="mr-1.5 px-1.5 py-0 text-[10px]">
+                          Replied
+                        </Badge>
+                      )}
                       {message.name}
                       <span className="font-normal text-muted-foreground"> · {message.email}</span>
                     </p>
@@ -100,7 +108,9 @@ export function MessageInbox({
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <div className="flex items-center gap-2">
+                {open.isDemo && <DemoBadge />}
                 {open.status === "ARCHIVED" && <Badge variant="outline">Archived</Badge>}
+                {open.status === "REPLIED" && <Badge variant="success">Replied</Badge>}
               </div>
               <DialogTitle className="leading-snug">{open.subject}</DialogTitle>
               <DialogDescription>
@@ -125,6 +135,11 @@ export function MessageInbox({
                     <Button variant="outline" disabled={pending} onClick={() => run(() => setMessageStatus(open.id, "UNREAD"))}>
                       <Mail aria-hidden="true" /> Mark unread
                     </Button>
+                    {open.status !== "REPLIED" && (
+                      <Button variant="outline" disabled={pending} onClick={() => run(() => setMessageStatus(open.id, "REPLIED"))}>
+                        <CheckCheck aria-hidden="true" /> Mark replied
+                      </Button>
+                    )}
                     <Button variant="outline" disabled={pending} onClick={() => run(() => setMessageStatus(open.id, "ARCHIVED"))}>
                       <Archive aria-hidden="true" /> Archive
                     </Button>

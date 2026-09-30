@@ -17,6 +17,7 @@ export type AdminMedia = {
   captionEn: string | null;
   captionTa: string | null;
   createdAt: string;
+  isDemo: boolean;
 };
 
 export function toAdminMedia(media: Media): AdminMedia {
@@ -35,5 +36,6 @@ export function toAdminMedia(media: Media): AdminMedia {
     captionEn: media.captionEn,
     captionTa: media.captionTa,
     createdAt: media.createdAt.toISOString(),
+    isDemo: media.isDemo,
   };
 }

@@ -5,6 +5,7 @@ import { BilingualHeader, TranslationProvider, TranslationSummary } from "@/comp
 import { PageHeader } from "@/components/admin/page-header";
 import { DeleteButton } from "@/components/admin/row-actions";
 import { StatusBadge } from "@/components/admin/resource-table";
+import { DemoBadge } from "@/components/admin/demo-badge";
 import { RESOURCES, type ResourceKey } from "@/lib/admin-resources";
 import type { ActionState } from "@/lib/action-state";
 import { bulkAction } from "@/server/actions/admin/bulk";
@@ -20,6 +21,7 @@ export function EditorFrame({
   id,
   name,
   status,
+  isDemo = false,
   publicHref,
   action,
   children,
@@ -29,6 +31,8 @@ export function EditorFrame({
   id: string | null;
   name?: string;
   status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  /** Fictional seed record (shows a DEMO DATA badge and notice). */
+  isDemo?: boolean;
   publicHref?: string | null;
   action: Action;
   children: React.ReactNode;
@@ -45,6 +49,7 @@ export function EditorFrame({
         actions={
           id && (
             <>
+              {isDemo && <DemoBadge />}
               {status && <StatusBadge status={status} />}
               {publicHref && status === "PUBLISHED" && (
                 <Button asChild variant="outline" size="sm">
@@ -64,6 +69,12 @@ export function EditorFrame({
           )
         }
       />
+      {isDemo && (
+        <p role="note" className="mb-6 rounded-xl border border-dashed border-warning/60 bg-warning/10 p-3 text-sm">
+          <strong>Demo data.</strong> This is a fictional record created by the seed. Editing it does not make it official information, and{" "}
+          <code className="text-xs">npm run db:demo:clear</code> removes it. Add official content as new records.
+        </p>
+      )}
       <TranslationProvider>
         <EntityForm action={action} submitLabel={id ? "Save changes" : `Create ${config.singular.toLowerCase()}`} cancelHref={config.href} successHref={id ? undefined : `${config.href}/{id}`}>
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">
