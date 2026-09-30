@@ -1,0 +1,363 @@
+// Trustfolio database schema.
+// Content is owned by a single site Profile; every public section is data-driven.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+enum SkillCategory {
+  FRONTEND
+  BACKEND
+  DATABASE
+  DEVOPS
+  TOOLS
+  OTHER
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  FREELANCE
+  INTERNSHIP
+}
+
+enum MessageStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+enum ThemePreference {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum ActivityAction {
+  CREATE
+  UPDATE
+  DELETE
+  PUBLISH
+  UNPUBLISH
+  FEATURE
+  UNFEATURE
+  LOGIN
+}
+
+// ─── Auth ───────────────────────────────────────────────────────────────────
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String?
+  passwordHash String
+  role         Role      @default(ADMIN)
+  image        String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  activities ActivityLog[]
+}
+
+// ─── Identity ───────────────────────────────────────────────────────────────
+
+/// Singleton describing the portfolio owner (id = "default").
+model Profile {
+  id                String   @id @default("default")
+  fullName          String
+  headline          String
+  /// Short credibility statement shown under the hero headline.
+  tagline           String
+  shortBio          String
+  /// Long-form biography (Markdown).
+  bio               String
+  avatarUrl         String?
+  location          String?
+  email             String
+  phone             String?
+  availability      String?
+  isAvailable       Boolean  @default(true)
+  resumeUrl         String?
+  heroEyebrow       String?
+  primaryCtaLabel   String   @default("View my work")
+  primaryCtaHref    String   @default("#projects")
+  secondaryCtaLabel String   @default("Get in touch")
+  secondaryCtaHref  String   @default("#contact")
+  values            String[]
+  highlights        String[]
+  /// Optional overrides for trust metrics. `null` means "derive from data".
+  yearsExperience   Int?
+  projectsCompleted Int?
+  clientsServed     Int?
+  achievementsCount Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  socialLinks SocialLink[]
+}
+
+model SocialLink {
+  id        String   @id @default(cuid())
+  profileId String   @default("default")
+  platform  String
+  label     String
+  url       String
+  sortOrder Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, platform])
+  @@index([profileId, sortOrder])
+}
+
+/// Singleton for site-wide configuration (id = "default").
+model SiteSetting {
+  id               String          @id @default("default")
+  siteName         String
+  siteDescription  String
+  seoTitle         String
+  seoDescription   String
+  seoKeywords      String[]
+  ogImageUrl       String?
+  twitterHandle    String?
+  defaultTheme     ThemePreference @default(SYSTEM)
+  accentColor      String          @default("indigo")
+  showServices     Boolean         @default(true)
+  showTestimonials Boolean         @default(true)
+  showCertificates Boolean         @default(true)
+  contactEnabled   Boolean         @default(true)
+  footerNote       String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+// ─── Portfolio content ─────────────────────────────────────────────────────
+
+model Technology {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  projects    Project[]
+  experiences Experience[]
+}
+
+model Project {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  /// Card-length summary.
+  summary         String
+  /// Long description (Markdown).
+  description     String
+  thumbnailUrl    String?
+  category        String
+  githubUrl       String?
+  liveUrl         String?
+  isFeatured      Boolean   @default(false)
+  isPublished     Boolean   @default(false)
+  completedAt     DateTime?
+  clientName      String?
+  clientIndustry  String?
+  clientUrl       String?
+  role            String?
+  duration        String?
+  /// Array of `{ label, value }` validated by `projectMetricsSchema`.
+  metrics         Json      @default("[]")
+  /// Case study sections (Markdown).
+  challenge       String?
+  solution        String?
+  results         String?
+  seoTitle        String?
+  seoDescription  String?
+  sortOrder       Int       @default(0)
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  images       ProjectImage[]
+  technologies Technology[]
+  testimonials Testimonial[]
+
+  @@index([isPublished, isFeatured, sortOrder])
+  @@index([category])
+  @@index([completedAt])
+}
+
+model ProjectImage {
+  id        String   @id @default(cuid())
+  projectId String
+  url       String
+  alt       String
+  caption   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, sortOrder])
+}
+
+model Experience {
+  id             String         @id @default(cuid())
+  company        String
+  companyUrl     String?
+  logoUrl        String?
+  position       String
+  location       String?
+  employmentType EmploymentType @default(FULL_TIME)
+  startDate      DateTime
+  /// `null` means current role.
+  endDate        DateTime?
+  description    String
+  achievements   String[]
+  isPublished    Boolean        @default(true)
+  sortOrder      Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  technologies Technology[]
+
+  @@index([isPublished, startDate])
+}
+
+model Skill {
+  id          String        @id @default(cuid())
+  name        String
+  category    SkillCategory
+  /// 0–100.
+  proficiency Int           @default(70)
+  years       Int?
+  isFeatured  Boolean       @default(false)
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([name, category])
+  @@index([category, sortOrder])
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  /// Lucide icon name, resolved against an allow-list on render.
+  icon        String   @default("sparkles")
+  features    String[]
+  pricing     String?
+  ctaLabel    String   @default("Start a project")
+  ctaHref     String   @default("#contact")
+  isFeatured  Boolean  @default(false)
+  isPublished Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, sortOrder])
+}
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  name        String
+  role        String?
+  company     String?
+  avatarUrl   String?
+  content     String
+  /// 1–5.
+  rating      Int      @default(5)
+  date        DateTime @default(now())
+  isPublished Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  projectId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([isPublished, sortOrder])
+  @@index([projectId])
+}
+
+model Certificate {
+  id              String    @id @default(cuid())
+  name            String
+  issuer          String
+  issuedAt        DateTime
+  expiresAt       DateTime?
+  credentialId    String?
+  verificationUrl String?
+  imageUrl        String?
+  fileUrl         String?
+  description     String?
+  isPublished     Boolean   @default(true)
+  sortOrder       Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([issuer, credentialId])
+  @@index([isPublished, issuedAt])
+}
+
+// ─── Operations ─────────────────────────────────────────────────────────────
+
+model ContactMessage {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    MessageStatus @default(UNREAD)
+  /// SHA-256 of the sender IP + AUTH_SECRET; never the raw IP.
+  ipHash    String?
+  userAgent String?
+  readAt    DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model ActivityLog {
+  id        String         @id @default(cuid())
+  userId    String?
+  action    ActivityAction
+  entity    String
+  entityId  String?
+  summary   String
+  createdAt DateTime       @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([entity, entityId])
+}
+
+/// Fixed-window rate limit counters shared across serverless instances.
+model RateLimit {
+  key       String   @id
+  count     Int      @default(0)
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}

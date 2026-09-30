@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" width="600" height="420">
+  <rect width="600" height="420" rx="24" fill="#fafaf9"/><rect x="18" y="18" width="564" height="384" rx="16" fill="none" stroke="#f59e0b" stroke-width="3"/>
+  <circle cx="300" cy="170" r="70" fill="#f59e0b"/><text x="300" y="185" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="38" fill="#fff">AWS</text>
+  <rect x="170" y="280" width="260" height="14" rx="7" fill="#d6d3d1"/><rect x="210" y="310" width="180" height="10" rx="5" fill="#e7e5e4"/>
+</svg>
