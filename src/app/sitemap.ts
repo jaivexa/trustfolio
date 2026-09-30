@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { LOCALE_TAGS, LOCALES } from "@/lib/i18n/config";
+import { DEFAULT_LOCALE, LOCALE_TAGS, LOCALES } from "@/lib/i18n/config";
 import { localePath } from "@/lib/i18n/paths";
 import { absoluteUrl } from "@/lib/utils";
 import { getSitemapData } from "@/server/queries/public/search";
@@ -45,7 +45,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: absoluteUrl(localePath(locale, path)),
       lastModified: updatedAt,
       alternates: {
-        languages: Object.fromEntries(LOCALES.map((l) => [LOCALE_TAGS[l].lang, absoluteUrl(localePath(l, path))])),
+        languages: {
+          ...Object.fromEntries(LOCALES.map((l) => [LOCALE_TAGS[l].lang, absoluteUrl(localePath(l, path))])),
+          "x-default": absoluteUrl(localePath(DEFAULT_LOCALE, path)),
+        },
       },
     })),
   );

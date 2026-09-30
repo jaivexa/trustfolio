@@ -11,9 +11,12 @@ const loadMotionFeatures = () => import("@/components/motion/features").then((mo
 export function Providers({
   children,
   defaultTheme,
+  notificationsLabel = "Notifications",
 }: {
   children: React.ReactNode;
   defaultTheme: "light" | "dark" | "system";
+  /** Accessible name of the toast region, in the page language. */
+  notificationsLabel?: string;
 }) {
   return (
     <ThemeProvider
@@ -28,7 +31,7 @@ export function Providers({
         <MotionConfig reducedMotion="user" transition={{ type: "spring", stiffness: 260, damping: 30 }}>
           <TooltipProvider>
             {children}
-            <Toaster position="bottom-right" offset={{ bottom: "5rem", right: "1.5rem" }} mobileOffset={{ bottom: "5rem" }} richColors closeButton />
+            <Toaster position="bottom-right" offset={{ bottom: "5rem", right: "1.5rem" }} mobileOffset={{ bottom: "5rem" }} richColors closeButton containerAriaLabel={notificationsLabel} />
           </TooltipProvider>
         </MotionConfig>
       </LazyMotion>

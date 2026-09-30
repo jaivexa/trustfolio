@@ -41,7 +41,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   return (
     <html lang={LOCALE_TAGS[locale].lang} data-accent={settings.accentColor} className={fontVariables} suppressHydrationWarning>
       <body className="min-h-dvh font-sans">
-        <Providers defaultTheme={defaultTheme}>
+        <Providers defaultTheme={defaultTheme} notificationsLabel={t.meta.notifications}>
           <a
             href="#main"
             className="sr-only z-50 rounded-full bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3"

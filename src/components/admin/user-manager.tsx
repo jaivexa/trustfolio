@@ -86,7 +86,16 @@ export function UserManager({ users, currentUserId }: { users: User[]; currentUs
                   <td className="px-3 py-3">
                     <RoleSelect user={user} disabled={self} />
                   </td>
-                  <td className="hidden px-3 py-3 text-xs text-muted-foreground md:table-cell">{user.lastLoginAt ? formatRelative(user.lastLoginAt) : "Never"}</td>
+                  <td className="hidden px-3 py-3 text-xs text-muted-foreground md:table-cell">
+                    {user.lastLoginAt ? (
+                      // Relative time differs by a few seconds between server and client render.
+                      <time dateTime={user.lastLoginAt} suppressHydrationWarning>
+                        {formatRelative(user.lastLoginAt)}
+                      </time>
+                    ) : (
+                      "Never"
+                    )}
+                  </td>
                   <td className="px-5 py-3 text-right">
                     {!self && <DeleteButton action={deleteUser.bind(null, user.id)} itemName={user.email} description="They lose access immediately." />}
                   </td>

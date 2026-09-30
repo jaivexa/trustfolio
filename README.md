@@ -1,71 +1,108 @@
 # Trustfolio
 
-A production-ready, database-driven **trust portfolio platform**: a premium personal-brand website with a secure admin dashboard. All portfolio content comes from PostgreSQL. The UI components contain no hard-coded content.
+A bilingual (English / தமிழ்) transparency website for a registered charitable trust. Every public claim is meant to be traceable to a real source. Pages include:
 
-**Stack:** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript (strict) · Tailwind CSS v4 · shadcn/ui (Radix) · Motion · PostgreSQL · Prisma 7 · Auth.js v5 · Zod 4 · Vercel-ready
+- who runs the trust, what it does and what it has achieved;
+- the documents that support all of this;
+- an **Evidence Center** that shows plainly what is and isn't documented yet.
+
+Everything on the site is edited in a protected dashboard at `/admin`.
+
+> **No official trust data is included.** The repository ships with clearly marked placeholders (`[Content pending official information]`) instead of a trust name, registration number, trustees, dates, figures or claims. Enter official information only from the trust's own documents. Optional demo content is labelled `[DEMO]` / "Sample" / "மாதிரி" and can be removed with one command (see [Demo content](#demo-content)).
+
+---
+
+## What's inside
+
+### Public site (`/en/…` and `/ta/…`)
+
+- **Home.** The hero's status chips come only from real data (e.g. "Registered trust" appears only once a registration number or document is published).
+- **About.** Introduction, vision and mission, objectives, history timeline, founder and FAQ.
+- **Trustees** and trustee profiles. A profile is published only when the trustee's consent is recorded.
+- **Activities and projects.** Category, year and text filters. Project pages show the need, approach, activities, figures, documents, stories, photos and an evidence checklist.
+- **Impact.**
+  - Figures always show their period, how they were counted and their source.
+  - Each figure opens its evidence.
+  - Charts come with a table view.
+  - Figures in different units are never added together.
+- **Evidence Center** (`/verification`) with an evidence-coverage checklist.
+  - There is no "trust score": an area is only ticked when published records exist.
+  - A **Registration & Legal** page embeds the registration document viewer.
+- **Document vault.** Search and filters; a PDF viewer with fullscreen, page jump and download. Also annual reports, certificates and awards, gallery albums with a keyboard-accessible lightbox, news and events, beneficiary stories, testimonials and contact.
+- **Global search** in both languages, including Tamil text.
+- **Localized states.** Error, empty and loading states, and `404`s, in both languages.
+- **Design.**
+  - Warm institutional look with Tamil-appropriate typography (Noto Sans / Serif Tamil, taller line height).
+  - A deliberate dark theme.
+  - Motion that respects "reduce motion".
+  - Layouts verified from 320 px to 1920 px.
+
+### Admin (`/admin`)
+
+- **Side-by-side English | தமிழ் editor.** Each field pair shows *Complete* or *Tamil missing*, and every form has a live **Translation complete ✓ / Translation missing ⚠** summary.
+- **One list view for every content type.**
+  - Search in English or Tamil, filter by status or "Tamil missing", pagination.
+  - Bulk **publish / move to draft / archive / delete**.
+- **Draft / Published / Archived** on every content type.
+- **Evidence links.** Reusable pickers link documents, projects, activities, reports and trustees to each other.
+- **Media library.**
+  - Alt text and captions in both languages.
+  - **Public** or **private** uploads, with files validated by their content (magic bytes).
+- **Other pages.** Dashboard with real evidence coverage and recent changes; translation report; categories; messages; SEO and site settings; navigation; social links; users; password change.
+- **Roles.**
+  - `ADMIN` has full access.
+  - `EDITOR` manages content only. Trust profile, settings, navigation, social links and users are admin-only; this is enforced on the server for every page and action.
+
+---
+
+## Evidence, privacy and honesty rules (enforced in code)
+
+| Rule | Where |
+| --- | --- |
+| Trustee profiles, testimonials and stories can't be published without recorded consent | Zod schemas (`src/lib/validations/admin.ts`) and bulk-publish guards (`src/server/actions/admin/bulk.ts`) |
+| A document marked "contains personal data" can only be public if the public file is a **redacted** copy; otherwise it must stay private | Same, plus public queries only return `public + published + (no personal data OR redacted)` documents |
+| Original (unredacted) documents are stored as **private** media, never served publicly — only through an authenticated admin route | `src/lib/storage.ts`, `src/app/api/admin/media/[id]/file` |
+| Published impact figures need a method, a source document or an annual report | Metric schema and bulk-publish guard |
+| Verification records must point to a document or an external registry/issuer link | Verification schema |
+| Placeholders and missing data render as "Content pending official information" and are left out of structured data | `real()` in public queries, `organizationJsonLd` |
+| Tamil is never generated automatically; untranslated text falls back to English with a `lang="en"` attribute and a visible note | `src/lib/i18n/localized.ts`, `src/components/i18n/tx.tsx` |
+| No Aadhaar, personal ID numbers or private phone numbers: forms warn editors, and the public contact block only uses the trust's office details | Admin forms, trust profile |
 
 ---
 
 ## Architecture
 
+**Stack.** Next.js 16 (App Router, Turbopack, `proxy.ts`), React 19, TypeScript (strict), Tailwind CSS v4, shadcn/ui on Radix, Motion, PostgreSQL + Prisma 7 (`@prisma/adapter-pg`), Auth.js v5 (credentials + JWT), Zod 4, next-themes, Sonner. Deployable on Vercel.
+
 ```
-prisma/
-  schema.prisma          Relational schema (13 models, enums, indexes, cascades)
-  migrations/            SQL migrations
-  seed.ts                Idempotent seed: admin user, settings, profile, demo content
-prisma.config.ts         Prisma 7 config (datasource URL, seed command)
-scripts/create-admin.ts  Create an admin or reset a password
-src/
-  app/
-    (site)/              Public site: home, /projects, /projects/[slug], legal pages
-    admin/login/         Sign-in page
-    admin/(dashboard)/   Protected dashboard: overview + CRUD for every entity
-    api/auth/…           Auth.js route handlers
-    api/admin/upload/    Authenticated file uploads
-    uploads/[...path]/   Serves files from the local storage driver
-    og/, icon.tsx        Generated Open Graph card and favicon
-    sitemap.ts, robots.ts
-  auth.ts, auth.config.ts   Auth.js (credentials + JWT), proxy-safe config
-  proxy.ts               Fast redirect for /admin (Next 16's replacement for middleware)
-  components/
-    ui/                  shadcn/ui primitives
-    sections/            Public page sections (server components + small client islands)
-    site/                Header, footer, theme toggle, section layout
-    admin/               Admin shell, form system, field editors, row actions
-    motion/              Reveal / stagger / counter primitives
-    shared/              Markdown, images, icons, empty states, form field
-  lib/
-    validations/         Centralized Zod schemas (shared by client and server)
-    db.ts, env.ts, rate-limit.ts, storage.ts, email.ts, seo.ts, constants.ts
-  server/
-    queries/public.ts    Cached, tag-invalidated reads → serializable DTOs
-    queries/admin.ts     Uncached admin reads, each re-checking the session
-    actions/             Server actions (contact, auth, admin CRUD)
-    auth-guard.ts        requireAdmin / requireAdminPage
+prisma/                 schema, migrations, production-safe seed (placeholders only)
+scripts/                create-admin, seed-demo, clear-demo
+src/proxy.ts            locale negotiation (cookie → Accept-Language → en) + admin fast-path redirect
+src/app/[locale]/       public site (root layout per locale, html lang, hreflang)
+src/app/admin/          admin root layout; (dashboard)/[resource] generic list/new/edit routes
+src/app/api/admin/      upload, media list, private file stream (all authenticated)
+src/components/         ui/ (shadcn), layout/, trust/, cards/, impact/, interactive/, admin/
+src/lib/i18n/           locales, dictionaries (en.ts, ta.ts), localized-value helpers, paths
+src/lib/validations/    Zod schemas (contact, auth, admin)
+src/server/queries/     public/ (cached DTOs) and admin.ts (uncached, session-checked)
+src/server/actions/     server actions (contact, auth, admin/*)
 ```
 
-### Key decisions
-
-| Concern | Approach |
-| --- | --- |
-| **Rendering** | Public pages are **static with ISR**. Queries go through `unstable_cache` with cache tags. Admin mutations call `updateTag()`, so changes appear on the next request with no rebuild. Admin pages render dynamically. |
-| **Client JS** | Server Components by default. Client code is limited to interactive islands: the header, filters, carousel, contact form, counters, and admin forms. Motion features are lazy-loaded (`LazyMotion`). |
-| **LCP** | The hero entrance uses CSS only, so the headline never waits for JS. Page transitions skip the first load. |
-| **Auth** | Auth.js credentials provider, bcrypt (cost 12), 8-hour JWT sessions. `proxy.ts` redirects early, and **every** admin page, query and action re-verifies the session against the database. Deleting a user revokes access immediately. Roles: `ADMIN`, `EDITOR`. Only admins can change site settings. |
-| **Validation** | One set of Zod schemas in `src/lib/validations`. The contact form uses them client-side for instant feedback, and the server always re-validates. |
-| **Rate limiting** | Fixed-window counters in Postgres, updated with one atomic `INSERT … ON CONFLICT`, so limits hold across serverless instances without Redis. Contact: 3 per IP per 10 min and 5 per email per day. Login: 5 attempts per IP+email per 15 min. Uploads: 60 per hour per admin. |
-| **Spam** | Honeypot field and a minimum fill time. Bots get a fake success response and nothing is stored. IPs are stored only as salted SHA-256 hashes. |
-| **Uploads** | Admin-only. MIME type allow-list plus magic-byte sniffing (no SVG uploads), a size limit, an origin check, and random file names. Drivers: `local` (disk) or `vercel-blob`. |
-| **Security headers** | CSP, HSTS, `X-Frame-Options: DENY`, `nosniff`, Referrer-Policy, Permissions-Policy. `/admin` is `noindex`. |
-| **SEO** | Metadata comes from the database with a title template, canonical URLs, Open Graph and X cards. OG images are generated per project. Also includes a sitemap, robots.txt, JSON-LD (`Person`, `WebSite`, `CreativeWork`, `BreadcrumbList`), semantic landmarks, and one `h1` per page. |
-| **Theming** | Every color, radius and shadow is a CSS variable in `globals.css`. Light, dark and system modes are persisted via `next-themes`. Six accent presets can be switched from Admin → Settings. |
-| **Accessibility** | Skip link, visible focus rings, labelled controls, `aria-invalid` and `aria-describedby` on errors, live regions for form status, and a WAI-ARIA carousel with a pause control. `prefers-reduced-motion` is honored in both CSS and Motion. |
-
-### Data model
-
-`User` · `Profile` (singleton) · `SocialLink` · `SiteSetting` (singleton) · `Project` · `ProjectImage` · `Technology` (many-to-many with Project and Experience) · `Experience` · `Skill` · `Service` · `Testimonial` (optionally linked to a Project) · `Certificate` · `ContactMessage` · `ActivityLog` (powers "recent activity") · `RateLimit`
-
-Trust metrics (years, projects, clients, certifications, technologies, achievements) are **derived from your content**. You can override any of them in Settings.
+- **Localization.**
+  - Every URL is prefixed with `/en` or `/ta`, and the language switcher keeps you on the same page.
+  - Bilingual content is stored as `fieldEn` / `fieldTa` columns and resolved per request through `Localized` DTOs.
+  - UI copy lives in `src/lib/i18n/dictionaries/`.
+- **Caching.**
+  - Public data uses `unstable_cache` with tags (`CACHE_TAGS`); detail pages are statically generated and regenerate on demand.
+  - Admin mutations expire the affected tags (`updateTag`), so edits show immediately.
+  - Content created after a deploy renders on first request; there is no rebuild needed.
+- **Security.**
+  - **Server-side authorization:** every admin page calls `requireAdminPage()`, and every action or route calls `requireAdmin()`. The proxy is only a fast redirect.
+  - **Attack protection:** strict CSP and security headers, origin checks on uploads, and Postgres-backed rate limiting (sign-in, contact form, uploads).
+  - **Minimal responses:** admin DTOs never include storage keys or password hashes.
+- **SEO.**
+  - Per-locale metadata with `hreflang` (`en`, `ta`, `x-default`) and canonical URLs; `sitemap.xml` covers both languages with alternates; `robots.txt` excludes `/admin` and `/api`.
+  - Structured data (Organization/NGO, WebSite, BreadcrumbList, Article, Event) is generated only from published, visible content.
 
 ---
 
@@ -74,76 +111,103 @@ Trust metrics (years, projects, clients, certifications, technologies, achieveme
 **Requirements:** Node.js ≥ 20.9 and PostgreSQL ≥ 14.
 
 ```bash
-git clone <repo> && cd trustfolio
 npm install                       # also runs `prisma generate`
 cp .env.example .env              # then edit values
 npx auth secret                   # or: openssl rand -base64 32 → AUTH_SECRET
+createdb trustfolio               # example for a local Postgres
 
-# Create the database (example for a local Postgres)
-createdb trustfolio
-
-npm run db:migrate                # apply migrations
-npm run db:seed                   # admin user + demo content
-npm run dev                       # http://localhost:3000
+npm run db:deploy                 # apply migrations
+npm run db:seed                   # admin user + placeholders + categories (no invented content)
+npm run dev                       # http://localhost:3000 → redirects to /en or /ta
 ```
 
 Sign in at **http://localhost:3000/admin** with `ADMIN_EMAIL` / `ADMIN_PASSWORD` from `.env`.
 
-### Admin users
+### Demo content
+
+To preview the design with realistic-looking but clearly labelled sample data:
 
 ```bash
-# Create an admin, or reset an existing user's password (prompts for the password if ADMIN_PASSWORD is unset)
-npm run admin:create -- --email you@example.com --name "Your Name"
-# Create an editor (content only, no site settings)
-npm run admin:create -- --email editor@example.com --role EDITOR
+npm run db:seed:demo     # adds [DEMO] / "Sample" / "மாதிரி" records and /demo/* images
+npm run db:demo:clear    # removes all of it again
 ```
 
-Passwords must be at least 12 characters and include uppercase and lowercase letters and a number. Admins can change their password in **Settings → Account**.
+The demo seed refuses to run when `NODE_ENV=production` unless `--force` is passed. It only fills trust-profile fields that are empty or still pending.
 
-### Useful scripts
+### Users
+
+```bash
+npm run admin:create -- --email you@example.org --name "Your Name"            # admin
+npm run admin:create -- --email editor@example.org --role EDITOR              # editor
+```
+
+Admins can also add users from **Users** in the dashboard; a temporary password is shown once. Passwords need at least 12 characters with upper- and lowercase letters and a number.
+
+### Scripts
 
 | Script | Purpose |
 | --- | --- |
-| `npm run dev` | Dev server (Turbopack) |
+| `npm run dev` | Dev server |
 | `npm run build` / `npm start` | Production build / server |
 | `npm run lint` / `npm run typecheck` | ESLint / `tsc --noEmit` |
 | `npm run db:migrate` | Create and apply migrations in development |
-| `npm run db:deploy` | Apply migrations in production |
-| `npm run db:seed` | Seed (safe to re-run) |
+| `npm run db:deploy` | Apply migrations (production) |
+| `npm run db:seed` | Production-safe seed (safe to re-run) |
+| `npm run db:seed:demo` / `npm run db:demo:clear` | Add / remove labelled demo content |
+| `npm run admin:create` | Create a user or reset a password |
 | `npm run db:studio` | Prisma Studio |
 
 ### Environment variables
 
-See [`.env.example`](.env.example). Summary:
+See [`.env.example`](.env.example).
 
 | Variable | Required | Notes |
 | --- | --- | --- |
 | `DATABASE_URL` | ✅ | Use a pooled connection string in serverless environments. |
-| `AUTH_SECRET` | ✅ | At least 32 characters. |
-| `AUTH_TRUST_HOST` | self-hosting | `true` for `next start`, Docker, or behind your own proxy. Vercel sets it automatically. |
-| `NEXT_PUBLIC_SITE_URL` | ✅ in prod | Canonical origin for metadata and the sitemap. |
+| `AUTH_SECRET` | ✅ | At least 32 characters. Never commit it. |
+| `AUTH_TRUST_HOST` | self-hosting | `true` for `next start`, Docker or your own proxy. Vercel sets it automatically. |
+| `NEXT_PUBLIC_SITE_URL` | ✅ in prod | Canonical origin for metadata, hreflang and the sitemap. |
 | `STORAGE_DRIVER` | – | `local` (default) or `vercel-blob` |
-| `BLOB_READ_WRITE_TOKEN` | with blob | Created when you link a Vercel Blob store. |
+| `BLOB_READ_WRITE_TOKEN` | with blob | Created when you connect a Vercel Blob store. |
 | `UPLOAD_MAX_MB` | – | Default `8` |
-| `RESEND_API_KEY`, `EMAIL_FROM`, `CONTACT_NOTIFY_EMAIL` | – | Optional email notification for each new contact message. |
+| `RESEND_API_KEY`, `EMAIL_FROM`, `CONTACT_NOTIFY_EMAIL` | – | Optional email notification for new contact messages. |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | seed only | Used by `db:seed` and `admin:create`. |
 
-Secrets are only read on the server (`src/lib/env.ts` is `server-only`). The only public variable is `NEXT_PUBLIC_SITE_URL`.
+Secrets are only read on the server (`src/lib/env.ts` is `server-only`); the only public variable is `NEXT_PUBLIC_SITE_URL`.
 
 ---
 
-## Production deployment (Vercel)
+## Entering the trust's information
 
-1. **Database:** create a Postgres database (Vercel Postgres/Neon, Supabase, RDS…). Use its **pooled** connection string as `DATABASE_URL`.
-2. **Storage:** in Vercel → Storage, create a **Blob** store and connect it to the project. This adds `BLOB_READ_WRITE_TOKEN`. Then set `STORAGE_DRIVER=vercel-blob`. The local disk is not persistent on Vercel.
-3. **Environment variables:** set `DATABASE_URL`, `AUTH_SECRET`, `NEXT_PUBLIC_SITE_URL=https://your-domain.com`, the storage variables, and optionally the email variables.
-4. **Build command:** set it to `npm run vercel-build`. This runs `prisma generate && prisma migrate deploy && next build`, so migrations are applied before the build. The database must be reachable at build time because public pages are prerendered.
-5. **First deploy, then seed once** from your machine against the production database:
+1. **Trust profile** (admin only).
+   - Enter the registered name, registration number, office, dates, legal status and registered address exactly as printed on the registration certificate.
+   - Use the office contact details, never a personal mobile number.
+2. **Documents.** Upload the registration certificate and trust deed.
+   - If a document shows personal details (Aadhaar or ID numbers, signatures, home addresses, private phone numbers), upload a **redacted** copy as the public file and the original as the **private** file, then tick "contains personal data" and "redacted".
+   - Link the document from the trust profile and from a **Verification record**.
+3. **Trustees.** Add profiles and record each person's consent before publishing. Mark one as the founder.
+4. **Objectives.** Copy them from the trust deed, citing the clause.
+5. **Projects, activities and impact.** Add a figure only when it was actually counted, with its period, method and source.
+6. **Tamil.**
+   - Official and legal wording should come from the trust's registered Tamil documents.
+   - Other Tamil text is written or reviewed by a person.
+   - Use **Translations** to see what is still missing.
+
+---
+
+## Deployment (Vercel)
+
+1. **Database.** Create a Postgres database and use its **pooled** URL as `DATABASE_URL`.
+2. **Storage.**
+   - Create a **Blob** store in Vercel → Storage and connect it (this adds `BLOB_READ_WRITE_TOKEN`), then set `STORAGE_DRIVER=vercel-blob`.
+   - Private originals are stored as private blobs and streamed only to signed-in admins.
+3. **Environment.** Set `DATABASE_URL`, `AUTH_SECRET`, `NEXT_PUBLIC_SITE_URL=https://your-domain`, the storage variables and, optionally, the email variables.
+4. **Build command.** Use `npm run vercel-build`, which runs `prisma generate && prisma migrate deploy && next build`. The database must be reachable at build time.
+5. **Seed once** against the production database:
    ```bash
-   DATABASE_URL="<prod url>" ADMIN_EMAIL=you@domain.com ADMIN_PASSWORD='<strong password>' npm run db:seed
+   DATABASE_URL="<prod url>" ADMIN_EMAIL=you@domain.org ADMIN_PASSWORD='<strong password>' npm run db:seed
    ```
-   To start empty instead of with demo content, create only an admin (`npm run admin:create`), then fill in **Settings → Profile** in the dashboard.
-6. Replace the demo content, profile image and résumé from `/admin`.
+6. Sign in at `/admin` and complete the trust profile.
 
 ### Self-hosting (Node/Docker)
 
@@ -152,15 +216,17 @@ npm ci && npm run build && npm run db:deploy
 AUTH_TRUST_HOST=true npm start
 ```
 
-With `STORAGE_DRIVER=local`, uploads are written to `./uploads`. Mount it as a persistent volume.
+With `STORAGE_DRIVER=local`, mount `./uploads` and `./private-uploads` as persistent volumes. Never serve `./private-uploads` directly.
 
 ---
 
-## Extending
+## Before launch
 
-- **New content type:** add a Prisma model and migration, a Zod schema in `lib/validations`, a cached getter in `server/queries/public.ts` with a new `CACHE_TAGS` entry, admin actions built on `adminMutation` + `expire(tag)`, and a form built from `components/admin/fields`.
-- **New accent color:** add a `[data-accent="…"]` block in `globals.css` and the name to `ACCENT_COLORS`.
-- **New service icon:** add it to `SERVICE_ICON_NAMES` and `components/shared/service-icon.tsx`.
+- [ ] Replace every `[Content pending official information]` placeholder, and run `npm run db:demo:clear` if demo content was added.
+- [ ] Have a native Tamil speaker review the interface text in `src/lib/i18n/dictionaries/ta.ts` and the static legal pages (privacy and terms).
+- [ ] Review the privacy and terms pages with the trust's advisers.
+- [ ] Check that every public document containing personal data uses a redacted file.
+- [ ] Run `npm run lint && npm run typecheck && npm run build`.
 
 ## License
 

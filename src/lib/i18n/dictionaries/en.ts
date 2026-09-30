@@ -11,6 +11,7 @@ export const en = {
     availableInTamilOnly: "This content is currently available in Tamil only.",
     pendingOfficial: "Content pending official information",
     lastUpdated: "Last updated {date}",
+    notifications: "Notifications",
   },
   nav: {
     home: "Home",

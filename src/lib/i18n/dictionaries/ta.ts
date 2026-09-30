@@ -12,6 +12,7 @@ export const ta: Dictionary = {
     availableInTamilOnly: "இந்த உள்ளடக்கம் தற்போது தமிழில் மட்டுமே கிடைக்கிறது.",
     pendingOfficial: "அதிகாரப்பூர்வ தகவலுக்காகக் காத்திருக்கிறது",
     lastUpdated: "கடைசியாகப் புதுப்பிக்கப்பட்டது: {date}",
+    notifications: "அறிவிப்புகள்",
   },
   nav: {
     home: "முகப்பு",

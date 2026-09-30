@@ -79,7 +79,7 @@ export function MessageInbox({
                       {message.name}
                       <span className="font-normal text-muted-foreground"> · {message.email}</span>
                     </p>
-                    <time dateTime={message.createdAt} className="shrink-0 text-xs text-muted-foreground">
+                    <time dateTime={message.createdAt} className="shrink-0 text-xs text-muted-foreground" suppressHydrationWarning>
                       {formatRelative(message.createdAt)}
                     </time>
                   </div>
