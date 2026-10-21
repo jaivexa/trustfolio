@@ -334,3 +334,24 @@
   & hr { border-color: var(--border); }
   & code { font-family: var(--font-mono); font-size: 0.875em; background: var(--muted); padding: 0.1em 0.35em; border-radius: 0.3rem; }
 }
+
+@keyframes news-ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.news-ticker-track {
+  animation: news-ticker-scroll 35s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .news-ticker-track {
+    animation: none;
+  }
+}

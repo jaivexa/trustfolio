@@ -8,7 +8,15 @@ import { brandName, buildNav } from "@/components/layout/chrome";
 import { fontVariables } from "@/lib/fonts";
 import { getPageContext, LOCALES, localePath, LOCALE_TAGS } from "@/lib/i18n";
 import { buildLocaleMetadata } from "@/lib/seo";
-import { getDemoStatus, getSettings, getTrust } from "@/server/queries/public";
+import { text } from "@/lib/i18n/localized";
+import {
+  getDemoStatus,
+  getSettings,
+  getTrust,
+  getNews,
+} from "@/server/queries/public";
+import { NewsTicker } from "@/components/layout/news-ticker";
+
 import "../globals.css";
 
 // Unknown locales 404 in getPageContext. `dynamicParams` must stay at its
@@ -18,9 +26,15 @@ export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }
 
-export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: LayoutProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await getPageContext(params);
-  const [trust, settings, demo] = await Promise.all([getTrust(), getSettings(), getDemoStatus()]);
+  const [trust, settings, demo] = await Promise.all([
+    getTrust(),
+    getSettings(),
+    getDemoStatus(),
+  ]);
   return buildLocaleMetadata(locale, trust, settings, demo.active);
 }
 
@@ -32,30 +46,65 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 };
 
-export default async function LocaleLayout({ children, params }: LayoutProps<"/[locale]">) {
+export default async function LocaleLayout({
+  children,
+  params,
+}: LayoutProps<"/[locale]">) {
   const { locale, t } = await getPageContext(params);
-  const [trust, settings, demo] = await Promise.all([getTrust(), getSettings(), getDemoStatus()]);
+  const [trust, settings, demo, news] = await Promise.all([
+    getTrust(),
+    getSettings(),
+    getDemoStatus(),
+    getNews(),
+  ]);
   const nav = buildNav(locale, t, settings);
   const brand = brandName(locale, t, trust);
-  const defaultTheme = settings.defaultTheme.toLowerCase() as "light" | "dark" | "system";
+  const defaultTheme = settings.defaultTheme.toLowerCase() as
+    | "light"
+    | "dark"
+    | "system";
 
   return (
-    <html lang={LOCALE_TAGS[locale].lang} data-accent={settings.accentColor} className={fontVariables} suppressHydrationWarning>
+    <html
+      lang={LOCALE_TAGS[locale].lang}
+      data-accent={settings.accentColor}
+      className={fontVariables}
+      suppressHydrationWarning
+    >
       <body className="min-h-dvh font-sans">
-        <Providers defaultTheme={defaultTheme} notificationsLabel={t.meta.notifications}>
+        <Providers
+          defaultTheme={defaultTheme}
+          notificationsLabel={t.meta.notifications}
+        >
           <a
             href="#main"
             className="sr-only z-50 rounded-full bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
           >
             {t.meta.skipToContent}
           </a>
-          {demo.active && <DemoBanner label={t.meta.demoLabel} message={t.meta.demoBanner} />}
+          {demo.active && (
+            <DemoBanner label={t.meta.demoLabel} message={t.meta.demoBanner} />
+          )}
+          <NewsTicker
+            locale={locale}
+            items={news.map((post) => ({
+              id: post.id,
+              slug: post.slug,
+              title: text(post.title, locale),
+              date: post.date,
+            }))}
+          />
           <SiteHeader
             locale={locale}
             brand={{ ...brand, logoUrl: trust.logo?.url ?? null }}
             homeHref={localePath(locale, "/")}
             nav={nav}
-            cta={{ label: settings.contactEnabled ? t.header.cta : t.header.ctaContact, href: localePath(locale, "/contact") }}
+            cta={{
+              label: settings.contactEnabled
+                ? t.header.cta
+                : t.header.ctaContact,
+              href: localePath(locale, "/contact"),
+            }}
             searchHref={localePath(locale, "/search")}
             labels={{
               primary: t.nav.primary,
@@ -78,11 +127,23 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
           <main id="main" tabIndex={-1} className="outline-none">
             {children}
           </main>
-          <SiteFooter locale={locale} t={t} trust={trust} settings={settings} brand={brand} nav={nav} />
+          <SiteFooter
+            locale={locale}
+            t={t}
+            trust={trust}
+            settings={settings}
+            brand={brand}
+            nav={nav}
+          />
         </Providers>
         {settings.analyticsDomain && (
           // Privacy-friendly, cookie-less analytics — only when configured in Settings.
-          <Script defer data-domain={settings.analyticsDomain} src="https://plausible.io/js/script.js" strategy="afterInteractive" />
+          <Script
+            defer
+            data-domain={settings.analyticsDomain}
+            src="https://plausible.io/js/script.js"
+            strategy="afterInteractive"
+          />
         )}
       </body>
     </html>
