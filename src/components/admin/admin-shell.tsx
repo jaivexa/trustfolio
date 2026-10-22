@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -13,6 +13,7 @@ import {
   FileText,
   FolderKanban,
   FolderOpen,
+  HandHeart,
   History,
   Images,
   Inbox,
@@ -41,7 +42,7 @@ import { ThemeToggle } from "@/components/site/theme-toggle";
 import { logout } from "@/server/actions/auth";
 import { cn, initials } from "@/lib/utils";
 
-type NavItem = { href: string; label: string; icon: LucideIcon; badgeKey?: "unread"; adminOnly?: boolean };
+type NavItem = { href: string; label: string; icon: LucideIcon; badgeKey?: "unread" | "pendingVolunteers"; adminOnly?: boolean };
 
 const NAV: { heading: string; items: NavItem[] }[] = [
   { heading: "Overview", items: [{ href: "/admin", label: "Dashboard", icon: LayoutDashboard }] },
@@ -87,6 +88,7 @@ const NAV: { heading: string; items: NavItem[] }[] = [
     heading: "Manage",
     items: [
       { href: "/admin/messages", label: "Messages", icon: Inbox, badgeKey: "unread" },
+      { href: "/admin/volunteers", label: "Volunteers", icon: HandHeart, badgeKey: "pendingVolunteers" },
       { href: "/admin/translations", label: "Translations", icon: Languages },
       { href: "/admin/settings", label: "SEO & settings", icon: Settings, adminOnly: true },
       { href: "/admin/navigation", label: "Navigation", icon: ListTree, adminOnly: true },
@@ -97,7 +99,7 @@ const NAV: { heading: string; items: NavItem[] }[] = [
   },
 ];
 
-function SidebarNav({ unread, role, onNavigate }: { unread: number; role: string; onNavigate?: () => void }) {
+function SidebarNav({ unread, pendingVolunteers = 0, role, onNavigate }: { unread: number; pendingVolunteers?: number; role: string; onNavigate?: () => void }) {
   const pathname = usePathname();
   const isActive = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname.startsWith(href));
 
@@ -127,6 +129,12 @@ function SidebarNav({ unread, role, onNavigate }: { unread: number; role: string
                       <span className="ml-auto rounded-full bg-brand px-1.5 py-px text-[11px] font-medium text-brand-foreground tabular-nums">
                         {unread}
                         <span className="sr-only"> unread</span>
+                      </span>
+                    )}
+                    {badgeKey === "pendingVolunteers" && pendingVolunteers > 0 && (
+                      <span className="ml-auto rounded-full bg-brand px-1.5 py-px text-[11px] font-medium text-brand-foreground tabular-nums">
+                        {pendingVolunteers}
+                        <span className="sr-only"> pending</span>
                       </span>
                     )}
                   </Link>
@@ -167,11 +175,13 @@ export function AdminShell({
   user,
   siteName,
   unread,
+  pendingVolunteers = 0,
   children,
 }: {
   user: { name: string; email: string; role: string };
   siteName: string;
   unread: number;
+  pendingVolunteers?: number;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -189,7 +199,7 @@ export function AdminShell({
     <div className="min-h-dvh bg-muted/30 lg:grid lg:grid-cols-[16rem_1fr]">
       <aside className="sticky top-0 hidden h-dvh flex-col border-r bg-background lg:flex">
         <div className="flex h-16 items-center border-b px-3">{brand}</div>
-        <SidebarNav unread={unread} role={user.role} />
+        <SidebarNav unread={unread} pendingVolunteers={pendingVolunteers} role={user.role} />
         <UserCard {...user} />
       </aside>
 
@@ -197,7 +207,7 @@ export function AdminShell({
         <SheetContent side="left" className="w-72 gap-0 p-0">
           <SheetTitle className="sr-only">Admin navigation</SheetTitle>
           <div className="flex h-16 items-center border-b px-3">{brand}</div>
-          <SidebarNav unread={unread} role={user.role} onNavigate={() => setOpen(false)} />
+          <SidebarNav unread={unread} pendingVolunteers={pendingVolunteers} role={user.role} onNavigate={() => setOpen(false)} />
           <UserCard {...user} />
         </SheetContent>
       </Sheet>

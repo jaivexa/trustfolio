@@ -1,7 +1,7 @@
-import "server-only";
+﻿import "server-only";
 import { db } from "@/lib/db";
 import { RESOURCES, type ResourceKey } from "@/lib/admin-resources";
-import type { CategoryType, MessageStatus } from "@/generated/prisma/enums";
+import type { CategoryType, MessageStatus, VolunteerApplicationStatus } from "@/generated/prisma/enums";
 import { requireAdminPage } from "@/server/auth-guard";
 import { toAdminMedia } from "@/server/queries/admin-media";
 
@@ -383,4 +383,78 @@ export const listCategories = adminQuery(async () => {
     sortOrder: r.sortOrder,
     usage: Object.values(r._count).reduce((a, b) => a + b, 0),
   }));
+});
+
+export type AdminVolunteerRow = {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string | null;
+  city: string | null;
+  interests: string[];
+  skills: string[];
+  availability: string | null;
+  message: string | null;
+  motivation: string;
+  goals: string;
+  remarks: string | null;
+  status: VolunteerApplicationStatus;
+  activityId: string | null;
+  activityTitle: string | null;
+  activitySlug: string | null;
+  createdAt: string;
+};
+
+export const listVolunteers = adminQuery(async () => {
+  const [items, counts] = await Promise.all([
+    db.volunteerApplication.findMany({
+      where: { isDeleted: false },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+      include: {
+        activity: {
+          select: { id: true, titleEn: true, titleTa: true, slug: true },
+        },
+      },
+    }),
+    db.volunteerApplication.groupBy({
+      by: ["status"],
+      where: { isDeleted: false },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const byStatus = Object.fromEntries(counts.map((c) => [c.status, c._count._all])) as Partial<Record<VolunteerApplicationStatus, number>>;
+
+  const volunteers: AdminVolunteerRow[] = items.map((v) => ({
+    id: v.id,
+    fullName: v.fullName,
+    email: v.email,
+    phone: v.phone,
+    city: v.city,
+    interests: v.interests,
+    skills: v.skills,
+    availability: v.availability,
+    message: v.message,
+    motivation: v.motivation,
+    goals: v.goals,
+    remarks: v.remarks,
+    status: v.status,
+    activityId: v.activityId,
+    activityTitle: v.activity?.titleEn ?? null,
+    activitySlug: v.activity?.slug ?? null,
+    createdAt: v.createdAt.toISOString(),
+  }));
+
+  return {
+    volunteers,
+    counts: {
+      all: items.length,
+      PENDING: byStatus.PENDING ?? 0,
+      REVIEWING: byStatus.REVIEWING ?? 0,
+      CONTACTED: byStatus.CONTACTED ?? 0,
+      APPROVED: byStatus.APPROVED ?? 0,
+      REJECTED: byStatus.REJECTED ?? 0,
+    },
+  };
 });

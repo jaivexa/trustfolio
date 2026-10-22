@@ -1,10 +1,11 @@
-import Link from "next/link";
-import { ArrowRight, MapPin, ShieldCheck } from "lucide-react";
+﻿import Link from "next/link";
+import { ArrowRight, HandHeart, Heart, MapPin, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityCard, NewsCard, ProjectCard } from "@/components/cards/cards";
 import { LocalizedMarkdown, Pending, Tx } from "@/components/i18n/tx";
 import { MetricTiles } from "@/components/impact/metric-tiles";
 import { TestimonialCarousel } from "@/components/interactive/testimonial-carousel";
+import { VolunteerModal } from "@/components/interactive/volunteer-modal";
 import { Section, SectionHeading } from "@/components/layout/section";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { JsonLd } from "@/components/shared/json-ld";
@@ -209,6 +210,68 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </Reveal>
         </Section>
       )}
+
+      {/* Get Involved */}
+      <Section labelledBy="get-involved-title" tone="pattern">
+        <div className="grid grid-cols-1 gap-10 sm:gap-12 lg:grid-cols-2 lg:gap-16 lg:items-center">
+          <Reveal>
+            <p className="tracking-eyebrow text-xs font-medium text-brand">
+              {t.getInvolved.eyebrow}
+            </p>
+            <h2
+              id="get-involved-title"
+              className="text-section mt-3"
+            >
+              {t.getInvolved.title}
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+              {t.getInvolved.description}
+            </p>
+          </Reveal>
+          <Stagger className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <StaggerItem>
+              <div className="surface flex h-full flex-col gap-4 p-6">
+                <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <HandHeart className="size-5" aria-hidden="true" />
+                </span>
+                <div className="flex-1">
+                  <h3 className="font-display text-lg">{t.getInvolved.volunteerTitle}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                    {t.getInvolved.volunteerText}
+                  </p>
+                </div>
+                <VolunteerModal
+                  locale={locale}
+                  labels={t.volunteer}
+                  activities={activities.map((a) => ({
+                    id: a.id,
+                    title: text(a.title, locale),
+                  }))}
+                />
+              </div>
+            </StaggerItem>
+            <StaggerItem>
+              <div className="surface flex h-full flex-col gap-4 p-6">
+                <span className="grid size-11 place-items-center rounded-xl bg-rose-500/10 text-rose-500">
+                  <Heart className="size-5" aria-hidden="true" />
+                </span>
+                <div className="flex-1">
+                  <h3 className="font-display text-lg">{t.getInvolved.donateTitle}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                    {t.getInvolved.donateText}
+                  </p>
+                </div>
+                <Button asChild size="lg" variant="outline">
+                  <Link href={href("/contact")}>
+                    <Heart aria-hidden="true" />
+                    {t.getInvolved.donateButton}
+                  </Link>
+                </Button>
+              </div>
+            </StaggerItem>
+          </Stagger>
+        </div>
+      </Section>
 
       {/* News */}
       {news.length > 0 && (

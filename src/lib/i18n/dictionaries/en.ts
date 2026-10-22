@@ -1,4 +1,4 @@
-/**
+﻿/**
  * English UI dictionary — the reference shape for every locale.
  * Only interface copy lives here; trust content comes from the database.
  * Use `{placeholders}` with `format()` for interpolation (keeps it serializable).
@@ -7,12 +7,14 @@ export const en = {
   meta: {
     language: "English",
     skipToContent: "Skip to content",
-    availableInEnglishOnly: "This content is currently available in English only.",
+    availableInEnglishOnly:
+      "This content is currently available in English only.",
     availableInTamilOnly: "This content is currently available in Tamil only.",
     pendingOfficial: "Content pending official information",
     lastUpdated: "Last updated {date}",
     notifications: "Notifications",
-    demoBanner: "Demonstration website — the organisation, people, figures and documents shown here are fictional sample data.",
+    demoBanner:
+      "Demonstration website — the organisation, people, figures and documents shown here are fictional sample data.",
     demoLabel: "Demo",
   },
   nav: {
@@ -151,7 +153,8 @@ export const en = {
   },
   projects: {
     title: "Projects",
-    description: "Long-running initiatives, with their objectives, activities and evidence.",
+    description:
+      "Long-running initiatives, with their objectives, activities and evidence.",
     featured: "Featured",
     need: "The need",
     approach: "Our approach",
@@ -170,7 +173,12 @@ export const en = {
     status: "Status",
     category: "Category",
     ongoingSince: "Since {date}",
-    phase: { PLANNED: "Planned", ONGOING: "Ongoing", COMPLETED: "Completed", PAUSED: "Paused" },
+    phase: {
+      PLANNED: "Planned",
+      ONGOING: "Ongoing",
+      COMPLETED: "Completed",
+      PAUSED: "Paused",
+    },
     evidenceChecklist: "Evidence available for this project",
     evidence_reports: "Reports & documents",
     evidence_photos: "Photos",
@@ -181,7 +189,8 @@ export const en = {
   },
   impact: {
     title: "Impact",
-    description: "Figures drawn from our records — each with its period, method and source.",
+    description:
+      "Figures drawn from our records — each with its period, method and source.",
     dashboard: "Impact dashboard",
     headline: "Headline figures",
     period: "Reporting period",
@@ -205,7 +214,8 @@ export const en = {
     description:
       "Trust is supported by evidence. Explore the documents, records and published information behind this profile.",
     coverageTitle: "Evidence available",
-    coverageText: "Categories are marked available only when supporting records are published.",
+    coverageText:
+      "Categories are marked available only when supporting records are published.",
     available: "Available",
     notYet: "Not yet published",
     identity: "Identity",
@@ -230,12 +240,14 @@ export const en = {
       ISSUER_WEBSITE: "Issuer website",
       OTHER: "Other source",
     },
-    methodNote: "These records describe how a claim can be checked. They are not endorsements.",
+    methodNote:
+      "These records describe how a claim can be checked. They are not endorsements.",
     count: "{count} published",
   },
   registration: {
     title: "Registration & legal information",
-    description: "Shown only from official documents. Private identifiers are never published.",
+    description:
+      "Shown only from official documents. Private identifiers are never published.",
     trustName: "Trust name",
     number: "Registration number",
     office: "Registration office",
@@ -248,14 +260,20 @@ export const en = {
   },
   documents: {
     title: "Documents",
-    description: "Trust documents, registration records, reports, policies and publications.",
+    description:
+      "Trust documents, registration records, reports, policies and publications.",
     searchPlaceholder: "Search documents…",
     category: "Category",
     year: "Year",
     allYears: "All years",
     type: "Type",
     language: "Language",
-    languages: { EN: "English", TA: "Tamil", BILINGUAL: "English & Tamil", OTHER: "Other" },
+    languages: {
+      EN: "English",
+      TA: "Tamil",
+      BILINGUAL: "English & Tamil",
+      OTHER: "Other",
+    },
     version: "Version {version}",
     source: "Source",
     date: "Document date",
@@ -263,7 +281,8 @@ export const en = {
     size: "Size",
     redacted: "Redacted public copy",
     preview: "Preview",
-    previewUnavailable: "Preview isn't available on this device. Open or download the file instead.",
+    previewUnavailable:
+      "Preview isn't available on this device. Open or download the file instead.",
     noFile: "The file for this document has not been published.",
     pages: "Page",
     related: "Linked to",
@@ -271,7 +290,8 @@ export const en = {
   },
   reports: {
     title: "Annual Reports",
-    description: "Year-by-year accounts of our work, impact and accountability.",
+    description:
+      "Year-by-year accounts of our work, impact and accountability.",
     english: "English",
     tamil: "தமிழ்",
     summary: "Summary",
@@ -285,8 +305,13 @@ export const en = {
   },
   certificates: {
     title: "Certificates & recognition",
-    description: "Certificates, awards and recognition, with links to issuers where available.",
-    kind: { CERTIFICATE: "Certificate", AWARD: "Award", RECOGNITION: "Recognition" },
+    description:
+      "Certificates, awards and recognition, with links to issuers where available.",
+    kind: {
+      CERTIFICATE: "Certificate",
+      AWARD: "Award",
+      RECOGNITION: "Recognition",
+    },
     issued: "Issued {date}",
     validUntil: "Valid until {date}",
     expired: "Expired {date}",
@@ -305,13 +330,15 @@ export const en = {
   },
   stories: {
     title: "Stories",
-    description: "People and communities, in their own context — shared with consent.",
+    description:
+      "People and communities, in their own context — shared with consent.",
     subject: "About",
     challenge: "The challenge",
     support: "Our support",
     journey: "The journey",
     outcome: "The outcome",
-    anonymized: "Names and identifying details have been changed to protect privacy.",
+    anonymized:
+      "Names and identifying details have been changed to protect privacy.",
     related: "Related",
   },
   gallery: {
@@ -335,7 +362,8 @@ export const en = {
   },
   contact: {
     title: "Contact",
-    description: "Reach the trust office. We usually reply within a few working days.",
+    description:
+      "Reach the trust office. We usually reply within a few working days.",
     details: "Contact details",
     email: "Email",
     phone: "Phone",
@@ -356,8 +384,10 @@ export const en = {
     success: "Thank you. Your message has been received.",
     sendAnother: "Send another message",
     fixFields: "Please correct the highlighted fields.",
-    closed: "The contact form is temporarily closed. Please use the details on this page.",
-    rateLimited: "You have sent several messages recently. Please try again in about {minutes} minutes.",
+    closed:
+      "The contact form is temporarily closed. Please use the details on this page.",
+    rateLimited:
+      "You have sent several messages recently. Please try again in about {minutes} minutes.",
     serverError: "Something went wrong on our side. Please try again shortly.",
     privacy: "Your details are used only to respond to your message.",
     errors: {
@@ -371,7 +401,8 @@ export const en = {
   },
   search: {
     title: "Search",
-    description: "Search projects, activities, documents, reports, news, trustees and certificates.",
+    description:
+      "Search projects, activities, documents, reports, news, trustees and certificates.",
     placeholder: "Search in English or Tamil…",
     results: "{count} results for “{query}”",
     noResults: "No results for “{query}”",
@@ -407,20 +438,25 @@ export const en = {
     news: "No news published yet.",
     stories: "No stories published yet.",
     trustees: "Trustee profiles will be published soon.",
-    objectives: "Objectives will be published from the trust's official documents.",
+    objectives:
+      "Objectives will be published from the trust's official documents.",
     history: "The history timeline will be published soon.",
-    metrics: "No impact figures have been published yet. We only publish figures backed by records.",
+    metrics:
+      "No impact figures have been published yet. We only publish figures backed by records.",
     testimonials: "No testimonials published yet.",
     records: "No verification records published yet.",
   },
   errors: {
     notFoundTitle: "Page not found",
-    notFoundText: "The page you're looking for doesn't exist or has been moved.",
+    notFoundText:
+      "The page you're looking for doesn't exist or has been moved.",
     errorTitle: "Something went wrong",
-    errorText: "An unexpected error occurred while loading this page. Please try again.",
+    errorText:
+      "An unexpected error occurred while loading this page. Please try again.",
     reference: "Reference: {digest}",
     databaseTitle: "We can't load this content right now",
-    databaseText: "Our records are temporarily unavailable. Please try again in a few minutes.",
+    databaseText:
+      "Our records are temporarily unavailable. Please try again in a few minutes.",
     offlineTitle: "You appear to be offline",
     offlineText: "Check your internet connection and try again.",
     unauthorizedTitle: "Please sign in",
@@ -439,6 +475,61 @@ export const en = {
   },
   status: {
     loading: "Loading…",
+  },
+  volunteer: {
+    success: "Your volunteer application has been submitted successfully.",
+    fixFields: "Please correct the highlighted fields.",
+    rateLimited: "Too many submissions. Please try again in {minutes} minutes.",
+    serverError:
+      "Something went wrong while submitting your application. Please try again.",
+    openButton: "Volunteer with us",
+    title: "Volunteer Application",
+    description:
+      "Join our team of volunteers and make a difference in your community. Fill in the form below and we'll be in touch.",
+    applyingFor: "Applying for",
+    successTitle: "Application received!",
+    closeButton: "Close",
+    activityLabel: "Activity (optional)",
+    activityHint: "Select the activity you'd like to volunteer for, or leave blank for a general application.",
+    generalOption: "General application",
+    fullName: "Full name",
+    email: "Email address",
+    phone: "Phone (optional)",
+    city: "City / Town (optional)",
+    interests: "Areas of interest",
+    skills: "Skills you can offer",
+    availability: "Availability (optional)",
+    availabilityHint: "e.g. weekends, weekday evenings",
+    motivation: "Why do you want to volunteer?",
+    motivationHint: "Tell us what motivates you to give your time.",
+    goals: "What do you hope to achieve?",
+    goalsHint: "Share what you'd like to learn or contribute.",
+    remarks: "Anything else you'd like to add? (optional)",
+    privacy: "Your details are used only to process your volunteer application.",
+    sending: "Submitting\u2026",
+    submitButton: "Submit application",
+    errors: {
+      nameMin: "Name must contain at least 2 characters.",
+      emailInvalid: "Please enter a valid email address.",
+      phoneInvalid: "Please enter a valid phone number.",
+      tooLong: "This field exceeds the maximum allowed length.",
+      motivationRequired: "Please tell us why you want to volunteer.",
+      goalsRequired: "Please share what you hope to achieve.",
+      activityInvalid: "Please select a valid activity.",
+    },
+  },
+  getInvolved: {
+    eyebrow: "Get involved",
+    title: "Make a difference today",
+    description:
+      "Whether you want to give your time or make a financial contribution, every effort helps us reach more people.",
+    volunteerTitle: "Volunteer with us",
+    volunteerText:
+      "Share your skills and time. We welcome volunteers from all backgrounds.",
+    donateTitle: "Make a donation",
+    donateText:
+      "Your contribution directly funds our programmes and activities.",
+    donateButton: "Donate now",
   },
 };
 
